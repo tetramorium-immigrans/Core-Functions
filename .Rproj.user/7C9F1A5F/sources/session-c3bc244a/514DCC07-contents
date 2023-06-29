@@ -87,7 +87,7 @@ Antmeans <- function(trajs.antmeans, binno.antmeans = 6, lspace.antmeans = 3000)
 
 
 #NET DIRECTION OF X-MOVEMENT
-#path is the data
+#dat is the data (the file name without suffix; must begin with a letter)
 #winspace and winsize are the "window spacing" and "window size" for averaging function in seconds (1 second = 5 frames)
 #mintime and maxtime are the start and end times for the graph in minutes (1 minute = 300 frames)
 #binno is the "bin number" for how many categories for coloring purposes
@@ -205,19 +205,142 @@ Antnetx.f <- function(trajs.antnetx, winspace.antnetx, winsize.antnetx,
 
 
 
+#PROPORTION OF INBOUND/OUTBOUND/NEITHER
+
+Antpropx <- function(dat = trajs, winspace = 10, winsize = 10,
+                     mintime = 0, maxtime,
+                     binno = 6, lspace = 10, legloc = 1, outbound = 1){
+  Antpropx.f(dat,winspace,winsize,mintime, maxtime,binno,lspace,legloc,outbound)
+}
+
+Antpropx.f <- function(trajs.antpropx, winspace.antpropx, winsize.antpropx,
+                       mintime.antpropx, maxtime.antpropx,
+                       binno.antpropx, lspace.antpropx, legloc.antpropx, outbound.antpropx){
+  
+  #Greatest number of trajectories in region during any frame (for coloring purposes)
+  antmax.antpropx <- max(rowSums(!is.na(trajs.antpropx[,,1])))
+  
+  #Ending frame found if not given as an argument
+  if(missing(maxtime.antpropx)){
+    maxtimef.antpropx <- dim(trajs.antpropx)[1]
+  }else{
+    maxtimef.antpropx <- maxtime.antpropx*300                                #Converting argument from minutes to frames
+  }
+  
+  #Converting input arguments to frames
+  winspacef.antpropx <- winspace.antpropx*5
+  winsizef.antpropx <- round(winsize.antpropx * 5 / 2)                       #Halved since the value will be used to extend to either side of a point
+  mintimef.antpropx <- mintime.antpropx*300
+  lspacef.antpropx <- lspace.antpropx*300
+  
+  #Get proportion of outbound ants; else condition (FALSE) gives inbound instead
+  if(outbound.antpropx == 1){
+    rprops <- rowSums(trajs.antpropx[,,1] < 0, na.rm = TRUE) / rowSums(!is.na(trajs.antpropx[,,1]), na.rm = TRUE)
+  }else if(outbound.antpropx == 0){
+    rprops <- rowSums(trajs.antpropx[,,1] > 0, na.rm = TRUE) / rowSums(!is.na(trajs.antpropx[,,1]), na.rm = TRUE)
+  }else if(outbound.antpropx == 2){
+    rprops <- (rowSums(trajs.antpropx[,,1] < 0, na.rm = TRUE) / rowSums(!is.na(trajs.antpropx[,,1]), na.rm = TRUE)) + (rowSums(trajs.antpropx[,,1] > 0, na.rm = TRUE) / rowSums(!is.na(trajs.antpropx[,,1]), na.rm = TRUE))
+  }else if(outbound.antpropx == -1){
+    rprops <- rowSums(trajs.antpropx[,,1] == 0, na.rm = TRUE) / rowSums(!is.na(trajs.antpropx[,,1]), na.rm = TRUE)
+  }else{
+    stop("Invalid outbound value; choose -1 to 2 for no x-axis motion, inbound, outbound, or inbound + outbound.")
+  }
+  
+  #kludge fix for rprops[0] not being a proper index
+  if(mintimef.antpropx == 0){
+    mintimef.antpropx <- mintimef.antpropx + 1
+  }
+  
+  #Main plotting function
+  plot(x = mintimef.antpropx:maxtimef.antpropx, y = rprops[mintimef.antpropx:maxtimef.antpropx],
+       xlab = "Frame Number", ylab = "",
+       col = floor( (rowSums(!is.na(trajs.antpropx[mintimef.antpropx:maxtimef.antpropx,,1]))/antmax.antpropx*binno.antpropx)+1 ))
+  dims.antpropx <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims[1:4] are size of the plot, dims[5] is calculating where to put the text just above the bottom of the frame, dims[6] is where the dotted line ends just above the text
+  
+  #Adding title to plot based on outbound value
+  if(outbound.antpropx == 1){
+    title(main = paste0("Proportion of outbound ants (mean window size ", winsize.antpropx, "s every ", winspace.antpropx, "s)"), ylab = "Proportion of outbound ants")
+  }else if(outbound.antpropx == 0){
+    title(main = paste0("Proportion of inbound ants (mean window size ", winsize.antpropx, "s every ", winspace.antpropx, "s)"), ylab = "Proportion of inbound ants")
+  }else if(outbound.antpropx == 2){
+    title(main = paste0("Proportion of inbound+outbound ants (mean window size ", winsize.antpropx, "s every ", winspace.antpropx, "s)"), ylab = "Proportion of inbound+outbound ants")
+  }else if(outbound.antpropx == -1){
+    title(main = paste0("Proportion of ants with no x-motion (mean window size ", winsize.antpropx, "s every ", winspace.antpropx, "s)"), ylab = "Proportion of ants with no x-motion")
+  }
+  
+  #propseq <- seq(mintimef.antpropx, maxtimef.antpropx, winspacef.antpropx)
+  #propxmeans <- matrix(data = NA, nrow = length(propseq), ncol = 2)
+  #propxmeans[,1] <- propseq
+  
+  
+  #Code for placing average points and lines; if/else if/else for when the window would go below 0, above maxtimef, or otherwise is in the middle respectively
+  for(i in seq(from = mintimef.antpropx, to = maxtimef.antpropx, by = winspacef.antpropx)){       
+    if((i - winsizef.antpropx) < 1){
+      points(x = i, y = mean((rprops[(1):(i+winsizef.antpropx)])), pch = 18, col = "gray26")
+      if((i-winspacef.antpropx+winsizef.antpropx) > 0){ #if statement to avoid erroring on first segment with a sub-0 index
+        segments(i - winspacef.antpropx, mean((rprops[(1):(i-winspacef.antpropx+winsizef.antpropx)])), 
+                 i, mean((rprops[(1):(i+winsizef.antpropx)])), col = "gray26")
+      }
+    }else if((i + winsizef.antpropx) > maxtimef.antpropx){
+      points(x = i, y = mean((rprops[(i-winsizef.antpropx):(maxtimef.antpropx)])), pch = 18, col = "gray26")
+      segments(i - winspacef.antpropx, mean((rprops[(i-winspacef.antpropx-winsizef.antpropx):(maxtimef.antpropx)])), 
+               i, mean((rprops[(i-winsizef.antpropx):(maxtimef.antpropx)])), col = "gray26")
+    }else{
+      points(x = i, y = mean((rprops[(i-winsizef.antpropx):(i+winsizef.antpropx)])), pch = 18, col = "gray26")
+      if((i-winspacef.antpropx-winsizef.antpropx) > 0){ #if statement to avoid erroring on segments outside the index
+        segments(i - winspacef.antpropx, mean((rprops[(i-winspacef.antpropx-winsizef.antpropx):(i-winspacef.antpropx+winsizef.antpropx)])), 
+                 i, mean((rprops[(i-winsizef.antpropx):(i+winsizef.antpropx)])), col = "gray26")
+      }
+    }
+  }
+  
+  #Add and label dotted lines for time
+  for(i in seq(from = 0, to = maxtimef.antpropx, by = lspacef.antpropx)){      
+    lines(c(i,i), c(dims.antpropx[4],dims.antpropx[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
+    text(i, dims.antpropx[5], labels = paste0(i / 300, "m"), col = rgb(0,0,0, alpha = 0.45))
+  }
+  
+  #Add legend
+  if(legloc.antpropx == 1){
+    legend("topleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antpropx/binno.antpropx)),paste(floor(antmax.antpropx/binno.antpropx*((2:binno.antpropx)-1))+1, "to", floor(antmax.antpropx/binno.antpropx*(2:binno.antpropx)))),
+           fill = 1:binno.antpropx)
+  }else if(legloc.antpropx == 2){
+    legend("topright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antpropx/binno.antpropx)),paste(floor(antmax.antpropx/binno.antpropx*((2:binno.antpropx)-1))+1, "to", floor(antmax.antpropx/binno.antpropx*(2:binno.antpropx)))),
+           fill = 1:binno.antpropx)
+  }else if(legloc.antpropx == 3){
+    legend("bottomright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antpropx/binno.antpropx)),paste(floor(antmax.antpropx/binno.antpropx*((2:binno.antpropx)-1))+1, "to", floor(antmax.antpropx/binno.antpropx*(2:binno.antpropx)))),
+           fill = 1:binno.antpropx)
+  }else if(legloc.antentx == 4){
+    legend("bottomleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antpropx/binno.antpropx)),paste(floor(antmax.antpropx/binno.antpropx*((2:binno.antpropx)-1))+1, "to", floor(antmax.antpropx/binno.antpropx*(2:binno.antpropx)))),
+           fill = 1:binno.antpropx)
+  }else{
+    print("No legend added; choose 1-4 for topleft, topright, bottomright, or bottomleft.")
+  }
+  
+}
 
 
-
-#NET DIRECTION OF Y-MOVEMENT
+#NET DIRECTION OF Y-MOVEMENT (needs updating)
 #trajs.antnety is the data
 #winspace.antnety is the "window spacing" for how far apart each averaged point should be
 #winsize.antnety is the "window size" for averaging in seconds
 #binno.antnety is the "bin number" for how many categories for coloring purposes
 #lspace.antnety is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
-Antnety.f <- function(trajs.antnety, winspace.antnety = 10, winsize.antnety = 10, 
-                      mintime.antnety = 0, maxtime.antnety, 
-                      binno.antnety = 6, lspace.antnety = 3000){
+#Wrapper function for Antnety.f
+Antnety <- function(dat, winspace = 10, winsize = 10, 
+                    mintime = 0, maxtime,
+                    binno = 6, lspace = 3000){
+  Antnety.f(dat,winspace,winsize,mintime,maxtime,binno,lspace)
+}
+
+Antnety.f <- function(trajs.antnety, winspace.antnety, winsize.antnety, 
+                      mintime.antnety, maxtime.antnety, 
+                      binno.antnety, lspace.antnety){
   
   if(missing(maxtime.antnety)){
     maxtime.antnety <- dim(trajs.antnety)[1]                               #Ending frame found if not given as an argument
@@ -269,10 +392,4 @@ Antnety.f <- function(trajs.antnety, winspace.antnety = 10, winsize.antnety = 10
          fill = 1:binno.antnety)
 }
 
-#Wrapper function for Antnety.f
-Antnety <- function(dat, winspace = 10, winsize = 10, 
-                    mintime = 0, maxtime,
-                    binno = 6, lspace = 3000){
-  Antnety.f(dat,winspace,winsize,mintime,maxtime,binno,lspace)
-}
 

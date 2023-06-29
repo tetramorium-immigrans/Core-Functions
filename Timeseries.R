@@ -268,28 +268,28 @@ Antpropx.f <- function(trajs.antpropx, winspace.antpropx, winsize.antpropx,
     title(main = paste0("Proportion of ants with no x-motion (mean window size ", winsize.antpropx, "s every ", winspace.antpropx, "s)"), ylab = "Proportion of ants with no x-motion")
   }
   
+  #propseq <- seq(mintimef.antpropx, maxtimef.antpropx, winspacef.antpropx)
+  #propxmeans <- matrix(data = NA, nrow = length(propseq), ncol = 2)
+  #propxmeans[,1] <- propseq
+  
+  
   #Code for placing average points and lines; if/else if/else for when the window would go below 0, above maxtimef, or otherwise is in the middle respectively
   for(i in seq(from = mintimef.antpropx, to = maxtimef.antpropx, by = winspacef.antpropx)){       
     if((i - winsizef.antpropx) < 1){
-      points(x = i, y = mean(rprops[1:winsizef.antpropx], na.rm = TRUE), pch = 18, col = "gray26")
-      if(i != 0){ #if statement to avoid erroring on first segment with a 0 index
-        segments(i - winspacef.antpropx, mean(rprops[1:winsizef.antpropx], na.rm = TRUE),
-                 i, mean(rprops[1:(i + winsizef.antpropx)], na.rm = TRUE), col = "gray26")
+      points(x = i, y = mean((rprops[(1):(i+winsizef.antpropx)])), pch = 18, col = "gray26")
+      if((i-winspacef.antpropx+winsizef.antpropx) > 0){ #if statement to avoid erroring on first segment with a 0 index
+        segments(i - winspacef.antpropx, mean((rprops[(1):(i-winspacef.antpropx+winsizef.antpropx)])), 
+                 i, mean((rprops[(1):(i+winsizef.antpropx)])), col = "gray26")
       }
     }else if((i + winsizef.antpropx) > maxtimef.antpropx){
-      points(x = i, y = mean(rprops[(i - winsizef.antpropx):maxtimef.antpropx], na.rm = TRUE), pch = 18, col = "gray26")
-      segments(i - winspacef.antpropx, mean(rprops[(i - winsizef.antpropx):maxtimef.antpropx], na.rm = TRUE),
-               i, mean(rprops[1:(i + winsizef.antpropx)], na.rm = TRUE), col = "gray26")
-      
-      
-      points(x = i, y = mean(rowSums(trajs.antpropx[(i-winsizef.antpropx):(maxtimef.antpropx),,1], na.rm = TRUE)), pch = 18, col = "gray26")
-      segments(i - winspacef.antpropx, mean(rowSums(trajs.antpropx[(i-winspacef.antpropx-winsizef.antpropx):(maxtimef.antpropx),,1], na.rm = TRUE)), 
-               i, mean(rowSums(trajs.antpropx[(i-winsizef.antpropx):(maxtimef.antpropx),,1], na.rm = TRUE)), col = "gray26")
+      points(x = i, y = mean((rprops[(i-winsizef.antpropx):(maxtimef.antpropx)])), pch = 18, col = "gray26")
+      segments(i - winspacef.antpropx, mean((rprops[(i-winspacef.antpropx-winsizef.antpropx):(maxtimef.antpropx)])), 
+               i, mean((rprops[(i-winsizef.antpropx):(maxtimef.antpropx)])), col = "gray26")
     }else{
-      points(x = i, y = mean(rowSums(trajs.antpropx[(i-winsizef.antpropx):(i+winsizef.antpropx),,1], na.rm = TRUE)), pch = 18, col = "gray26")
+      points(x = i, y = mean((rprops[(i-winsizef.antpropx):(i+winsizef.antpropx)])), pch = 18, col = "gray26")
       if((i-winspacef.antpropx-winsizef.antpropx) > 0){ #if statement to avoid erroring on segments outside the index
-        segments(i - winspacef.antpropx, mean(rowSums(trajs.antpropx[(i-winspacef.antpropx-winsizef.antpropx):(i-winspacef.antpropx+winsizef.antpropx),,1], na.rm = TRUE)), 
-                 i, mean(rowSums(trajs.antpropx[(i-winsizef.antpropx):(i+winsizef.antpropx),,1], na.rm = TRUE)), col = "gray26")
+        segments(i - winspacef.antpropx, mean((rprops[(i-winspacef.antpropx-winsizef.antpropx):(i-winspacef.antpropx+winsizef.antpropx)])), 
+                 i, mean((rprops[(i-winsizef.antpropx):(i+winsizef.antpropx)])), col = "gray26")
       }
     }
   }
