@@ -3,9 +3,9 @@
     "path": "D:/R/Core Functions/Timeseries.R",
     "project_path": "Timeseries.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "3577798862",
     "contents": "",
-    "dirty": true,
+    "dirty": false,
     "created": 1687795234455.0,
     "source_on_save": false,
     "relative_order": 3,
@@ -13,15 +13,15 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "291,68",
-        "scrollLine": "230"
+        "cursorPosition": "303,76",
+        "scrollLine": "278"
     },
     "folds": "",
-    "lastKnownWriteTime": 1687963866,
+    "lastKnownWriteTime": 1688680451,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1687964652464,
+    "last_content_update": 1688680451955,
     "read_only": false,
     "read_only_alternatives": []
 }

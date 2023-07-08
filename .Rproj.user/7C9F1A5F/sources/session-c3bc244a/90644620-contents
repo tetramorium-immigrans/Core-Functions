@@ -130,175 +130,6 @@ Antmeans <- function(trajs.antmeans, binno.antmeans = 6, lspace.antmeans = 3000)
 
 
 
-
-#NET DIRECTION OF X-MOVEMENT
-#dat is the data
-#winspace and winsize are the "window spacing" and "window size" for averaging function in seconds (1 second = 5 frames)
-#mintime and maxtime are the start and end times for the graph in minutes (1 minute = 300 frames)
-#binno is the "bin number" for how many categories for coloring purposes
-#lspace is the "line spacing" for graphical purposes (10 minutes = 3000 frames)
-#keepscale is whether to scale the y-axis to the whole data set or just the selected region
-
-
-#Wrapper function for Antnetx.f
-Antnetx <- function(dat, winspace = 10, winsize = 10, 
-                    mintime = 0, maxtime,
-                    binno = 6, lspace = 10, keepscale = FALSE){
-  Antnetx.f(dat,winspace,winsize,mintime,maxtime,binno,lspace, keepscale)
-}
-
-
-Antnetx.f <- function(trajs.antnetx, winspace.antnetx, winsize.antnetx, 
-                    mintime.antnetx, maxtime.antnetx, 
-                    binno.antnetx, lspace.antnetx, keepscale.antnetx){
-  
-  #Greatest number of trajectories in region during any frame (for coloring purposes)
-  antmax.antnetx <- max(rowSums(!is.na(trajs.antnetx[,,1])))
-  
-  #Ending frame found if not given as an argument
-  if(missing(maxtime.antnetx)){
-    maxtimef.antnetx <- dim(trajs.antnetx)[1]
-  }else{
-    maxtimef.antnetx <- maxtime.antnetx*300                                #Converting argument from minutes to frames
-  }
-  
-  #Converting input arguments to frames
-  winspacef.antnetx <- winspace.antnetx*5
-  winsizef.antnetx <- round(winsize.antnetx * 5 / 2)                       #Halved since the value will be used to extend to either side of a point
-  mintimef.antnetx <- mintime.antnetx*300
-  lspacef.antnetx <- lspace.antnetx*300
-  
-  #Main plotting function
-  if(keepscale.antnetx == TRUE){                                          #If keeping the scale, find out the appropriate scale for the full data set then plot
-    rsums <- rowSums(trajs.antnetx[mintimef.antnetx:maxtimef.antnetx,,1], na.rm = TRUE)
-    plot(x = mintimef.antnetx:maxtimef.antnetx, y = rsums[1:length(mintimef.antnetx:maxtimef.antnetx)], 
-         ylim = c(min(rsums), max(rsums)),
-         main = paste0("Net x-movement of ants (mean window size ", winsize.antnetx, "s every ", winspace.antnetx, "s)"), xlab = "Frame Number", ylab = "Sum of the x-component of velocities (cm/sec)", 
-         col = floor( (rowSums(!is.na(trajs.antnetx[mintimef.antnetx:maxtimef.antnetx,,1]))/antmax.antnetx*binno.antnetx)+1 ))
-    dims.antnetx <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims[1:4] are size of the plot, dims[5] is calculating where to put the text just above the bottom of the frame, dims[6] is where the dotted line ends just above the text
-    
-  }else{
-    plot(x = mintimef.antnetx:maxtimef.antnetx, y = rowSums(trajs.antnetx[mintimef.antnetx:maxtimef.antnetx,,1], na.rm = TRUE)[1:length(mintimef.antnetx:maxtimef.antnetx)], 
-         main = paste0("Net x-movement of ants (mean window size ", winsize.antnetx, "s every ", winspace.antnetx, "s)"), xlab = "Frame Number", ylab = "Sum of the x-component of velocities (cm/sec)", 
-         col = floor( (rowSums(!is.na(trajs.antnetx[mintimef.antnetx:maxtimef.antnetx,,1]))/antmax.antnetx*binno.antnetx)+1 ))
-    dims.antnetx <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims[1:4] are size of the plot, dims[5] is calculating where to put the text just above the bottom of the frame, dims[6] is where the dotted line ends just above the text
-  }
-  
-  
-  #Add x-axis, mean line, and arrows to indicate direction of bait and nest
-  lines(c(dims.antnetx[1],maxtimef.antnetx), c(0,0), type = "l", lty = 3)    
-  lines(c(dims.antnetx[1],maxtimef.antnetx), c(mean(trajs.antnetx[mintimef.antnetx:maxtimef.antnetx,,1], na.rm = TRUE),mean(trajs.antnetx[mintimef.antnetx:maxtimef.antnetx,,1], na.rm = TRUE)), type = "l", lty = 3)    
-  arrows(x0 = rep(dims.antnetx[1]+(par("usr")[2]-par("usr")[1])/60, 2), y0 = c((par("usr")[4]-par("usr")[3])/60, (par("usr")[3]-par("usr")[4])/60), y1 = c((par("usr")[4]-par("usr")[3])/12, (par("usr")[3]-par("usr")[4])/12), length = 0.2)
-  text(x = rep(dims.antnetx[1]+(par("usr")[2]-par("usr")[1])/60, 2), y = c((par("usr")[4]-par("usr")[3])/9, (par("usr")[3]-par("usr")[4])/9), labels = c("Nest", "Bait"), srt = 90)
-  
-  #Code for placing average points and lines; if/else if/else for when the window would go below 0, above maxtimef, or otherwise is in the middle respectively
-  for(i in seq(from = mintimef.antnetx, to = maxtimef.antnetx, by = winspacef.antnetx)){       
-    if((i - winsizef.antnetx) < 1){
-      points(x = i, y = mean(rowSums(trajs.antnetx[(1):(i+winsizef.antnetx),,1], na.rm = TRUE)), pch = 18, col = "gray26")
-      if(i != 0){ #if statement to avoid erroring on first segment with a 0 index
-        segments(i - winspacef.antnetx, mean(rowSums(trajs.antnetx[(1):(i-winspacef.antnetx+winsizef.antnetx),,1], na.rm = TRUE)), 
-                                     i, mean(rowSums(trajs.antnetx[(1):(i+winsizef.antnetx),,1], na.rm = TRUE)), col = "gray26")
-      }
-    }else if((i + winsizef.antnetx) > maxtimef.antnetx){
-      points(x = i, y = mean(rowSums(trajs.antnetx[(i-winsizef.antnetx):(maxtimef.antnetx),,1], na.rm = TRUE)), pch = 18, col = "gray26")
-      segments(i - winspacef.antnetx, mean(rowSums(trajs.antnetx[(i-winspacef.antnetx-winsizef.antnetx):(maxtimef.antnetx),,1], na.rm = TRUE)), 
-                                   i, mean(rowSums(trajs.antnetx[(i-winsizef.antnetx):(maxtimef.antnetx),,1], na.rm = TRUE)), col = "gray26")
-    }else{
-      points(x = i, y = mean(rowSums(trajs.antnetx[(i-winsizef.antnetx):(i+winsizef.antnetx),,1], na.rm = TRUE)), pch = 18, col = "gray26")
-      if((i-winspacef.antnetx-winsizef.antnetx) > 0){ #if statement to avoid erroring on segments outside the index
-        segments(i - winspacef.antnetx, mean(rowSums(trajs.antnetx[(i-winspacef.antnetx-winsizef.antnetx):(i-winspacef.antnetx+winsizef.antnetx),,1], na.rm = TRUE)), 
-                                     i, mean(rowSums(trajs.antnetx[(i-winsizef.antnetx):(i+winsizef.antnetx),,1], na.rm = TRUE)), col = "gray26")
-      }
-    }
-  }
-  
-  #Adds and labels dotted lines every 10 minutes
-  for(i in seq(from = 0, to = maxtimef.antnetx, by = lspacef.antnetx)){      
-    lines(c(i,i), c(dims.antnetx[4],dims.antnetx[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
-    text(i, dims.antnetx[5], labels = paste0(i / 300, "m"), col = rgb(0,0,0, alpha = 0.45))
-  }
-  
-  #Adds legend
-  legend("topleft", inset = 0.03, title = "Ants in region",
-         legend=c(paste("0 to", floor(antmax.antnetx/binno.antnetx)),paste(floor(antmax.antnetx/binno.antnetx*((2:binno.antnetx)-1))+1, "to", floor(antmax.antnetx/binno.antnetx*(2:binno.antnetx)))),
-         fill = 1:binno.antnetx)
-}
-
-
-
-
-
-
-#NET DIRECTION OF Y-MOVEMENT
-#trajs.antnety is the data
-#winspace.antnety is the "window spacing" for how far apart each averaged point should be
-#winsize.antnety is the "window size" for averaging in seconds
-#binno.antnety is the "bin number" for how many categories for coloring purposes
-#lspace.antnety is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
-
-Antnety.f <- function(trajs.antnety, winspace.antnety = 10, winsize.antnety = 10, 
-                     mintime.antnety = 0, maxtime.antnety, 
-                     binno.antnety = 6, lspace.antnety = 3000){
-  
-  if(missing(maxtime.antnety)){
-    maxtime.antnety <- dim(trajs.antnety)[1]                               #Ending frame found if not given as an argument
-  }
-  antmax.antnety <- max(rowSums(!is.na(trajs.antnety[,,2])))               #Greatest number of trajectories in region during any frame
-  
-  winspacef.antnety <- winspace.antnety*5                                  #Converting sampling spacing from seconds to frames
-  winsizef.antnety <- round(winsize.antnety / 2 * 5)                       #converting second window size to frames and halving in prep for extending to either side
-  
-  plot(x = mintime.antnety:maxtime.antnety, y = rowSums(trajs.antnety[mintime.antnety:maxtime.antnety,,2], na.rm = TRUE)[1:length(mintime.antnety:maxtime.antnety)], 
-       main = paste0("Net y-movement of ants (mean window size ", winsize.antnety, "s every ", winspace.antnety, "s)"), xlab = "Frame Number", ylab = "Sum of the x-component of velocities (cm/sec)", 
-       col = floor( (rowSums(!is.na(trajs.antnety[mintime.antnety:maxtime.antnety,,2]))/antmax.antnety*binno.antnety)+1 ))
-  dims.antnety <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims[1:4] are size of the plot, dims[5] is calculating where to put the text just above the bottom of the frame, dims[6] is where the dotted line ends just above the text
-  
-  #Add x-axis and mean line
-  lines(c(dims.antnety[1],maxtime.antnety), c(0,0), type = "l", lty = 3)    
-  lines(c(dims.antnety[1],maxtime.antnety), c(mean(trajs.antnety[mintime.antnety:maxtime.antnety,,2], na.rm = TRUE),mean(trajs.antnety[mintime.antnety:maxtime.antnety,,2], na.rm = TRUE)), type = "l", lty = 3)    
-  
-  #Code for placing average points and lines; if/else if/else for when the window would go below 0, above maxtime, or otherwise is in the middle respectively
-  for(i in seq(from = mintime.antnety, to = maxtime.antnety, by = winspacef.antnety)){       
-    if((i - winsizef.antnety) < 1){
-      points(x = i, y = mean(rowSums(trajs.antnety[(1):(i+winsizef.antnety),,2], na.rm = TRUE)), pch = 18, col = "gray26")
-      if(i != 0){ #if statement to avoid erroring on first segment with a 0 index
-        segments(i - winspacef.antnety, mean(rowSums(trajs.antnety[(1):(i-winspacef.antnety+winsizef.antnety),,2], na.rm = TRUE)), 
-                 i, mean(rowSums(trajs.antnety[(1):(i+winsizef.antnety),,2], na.rm = TRUE)), col = "gray26")
-      }
-    }else if((i + winsizef.antnety) > maxtime.antnety){
-      points(x = i, y = mean(rowSums(trajs.antnety[(i-winsizef.antnety):(maxtime.antnety),,2], na.rm = TRUE)), pch = 18, col = "gray26")
-      segments(i - winspacef.antnety, mean(rowSums(trajs.antnety[(i-winspacef.antnety-winsizef.antnety):(maxtime.antnety),,2], na.rm = TRUE)), 
-               i, mean(rowSums(trajs.antnety[(i-winsizef.antnety):(maxtime.antnety),,2], na.rm = TRUE)), col = "gray26")
-    }else{
-      points(x = i, y = mean(rowSums(trajs.antnety[(i-winsizef.antnety):(i+winsizef.antnety),,2], na.rm = TRUE)), pch = 18, col = "gray26")
-      if((i-winspacef.antnety-winsizef.antnety) > 0){ #if statement to avoid erroring on segments outside the index
-        segments(i - winspacef.antnety, mean(rowSums(trajs.antnety[(i-winspacef.antnety-winsizef.antnety):(i-winspacef.antnety+winsizef.antnety),,2], na.rm = TRUE)), 
-                 i, mean(rowSums(trajs.antnety[(i-winsizef.antnety):(i+winsizef.antnety),,2], na.rm = TRUE)), col = "gray26")
-      }
-    }
-  }
-  
-  #Adds and labels dotted lines every 10 minutes
-  for(i in seq(from = 0, to = maxtime.antnety, by = lspace.antnety)){      
-    lines(c(i,i), c(dims.antnety[4],dims.antnety[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
-    text(i, dims.antnety[5], labels = paste0(i / 300, "m"), col = rgb(0,0,0, alpha = 0.45))
-  }
-  
-  #Adds legend
-  legend("topleft", inset = 0.03, title = "Ants in region",
-         legend=c(paste("0 to", floor(antmax.antnety/binno.antnety)),paste(floor(antmax.antnety/binno.antnety*((2:binno.antnety)-1))+1, "to", floor(antmax.antnety/binno.antnety*(2:binno.antnety)))),
-         fill = 1:binno.antnety)
-}
-
-#Wrapper function for Antnety.f
-Antnety <- function(dat, winspace = 10, winsize = 10, 
-                    mintime = 0, maxtime,
-                    binno = 6, lspace = 3000){
-  Antnety.f(dat,winspace,winsize,mintime,maxtime,binno,lspace)
-}
-
-
-
 #####Comparing mean in and out velocities#####
 velin <- rep(NA, maxtraj)
 velout <- rep(NA, maxtraj)
@@ -440,27 +271,30 @@ arrows(0,0,trajs[sframe,,1],trajs[sframe,,2])
 
 
 #####Graph a grid of the individual vectors for the selected time and four time steps in either direction#####
-nf <- layout (matrix(c(1:9), ncol=3, byrow = TRUE))     #Grid layout
+nf <- par(no.readonly=TRUE)  
+
+layout (matrix(c(1:9), ncol=3, byrow = TRUE))     #Grid layout
 
 smin <- 40                                              #Starting minute
-winsec <- 10                                            #Size of window in seconds
+winsec <- 8                                            #Size of window in seconds
 
 sframe <- smin * 300                                    #Converting starting minute into frames
 winsize <- round(winsec / 2 * 5)                        #converting second window size to frames and halving in prep for extending to either side
 
 for(i in round(seq(sframe - winsize, sframe + winsize, length.out = 9))){ #Fills in the grid above with plots stepping through the given timeframe; plot 5 in the middle is always the plot at the specified time
   if(i < 3000 | i > 21000){
-    plot(NULL, xlim=c(-15,15), ylim=c(-15,15), main = paste(smin, "minutes", (i - sframe)/5, "seconds"))
+    plot(NULL, xlim=c(-1,1), ylim=c(-1,1), main = paste(smin, "minutes", (i - sframe)/5, "seconds"), xlab = "x-motion, cm/sec", ylab = "y-motion, cm/sec")
   }else{
-    plot(NULL, xlim=c(-15,15), ylim=c(-15,15), main = paste(smin, "minutes", (i - sframe)/5, "seconds"))
-    arrows(0,0,trajs[i,,1],trajs[i,,2], length = 0.1)
-    arrows(0,0,mean(trajs[i,,1], na.rm = TRUE), mean(trajs[i,,2], na.rm = TRUE), length = 0.1, lwd = 2, col = 'red')
-    arrows(0,0,sum(trajs[i,,1], na.rm = TRUE), sum(trajs[i,,2], na.rm = TRUE), length = 0.1, col = 'blue')
+    plot(NULL, xlim=c(-1,1), ylim=c(-1,1), main = paste(smin, "minutes", (i - sframe)/5, "seconds"), xlab = "x-motion, cm/sec", ylab = "y-motion, cm/sec")
+    arrows(0,0,trajs70[i,,1],trajs70[i,,2], length = 0.1)
+    #arrows(0,0,mean(trajs70[i,,1], na.rm = TRUE), mean(trajs70[i,,2], na.rm = TRUE), length = 0.1, lwd = 2, col = 'red')
+    #arrows(0,0,sum(trajs70[i,,1], na.rm = TRUE), sum(trajs70[i,,2], na.rm = TRUE), length = 0.1, col = 'blue')
     #arrows(0,0,ttrajs[1,i],trajs[i,,2])
     #text(x = trajs[i,,1],y = trajs[i,,2], labels = 1)
   }
 }
 
+par(nf)
 
 #####Variance and range as a function of ant number#####
 #Variance of sample data increases with sample size

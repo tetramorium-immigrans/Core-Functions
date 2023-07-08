@@ -88,16 +88,16 @@ Antmeans <- function(trajs.antmeans, binno.antmeans = 6, lspace.antmeans = 3000)
 
 #NET DIRECTION OF X-MOVEMENT
 #dat is the data (the file name without suffix; must begin with a letter)
-#winspace and winsize are the "window spacing" and "window size" for averaging function in seconds (1 second = 5 frames)
-#mintime and maxtime are the start and end times for the graph in minutes (1 minute = 300 frames)
+#winspace and winsize are the "window spacing" and "window size" for averaging function in seconds
+#mintime and maxtime are the start and end times for the graph in minutes 
 #binno is the "bin number" for how many categories for coloring purposes
-#lspace is the "line spacing" for graphical purposes (10 minutes = 3000 frames)
-#legloc is the "legend location" (1 = topleft, 2 = topright, 3 = bottomright, 4 = bottomleft)
+#lspace is the "line spacing" for graphical purposes in minutes
+#legloc is the "legend location" (1 = topleft, 2 = topright, 3 = bottomright, 4 = bottomleft, any other number for no legend)
 #keepscale is whether to scale the y-axis to the whole data set or just the selected region
 
 
 #Wrapper function for Antnetx.f
-Antnetx <- function(dat = trajs, winspace = 10, winsize = 10, 
+Antnetx <- function(dat = trajs, winspace = 20, winsize = 20, 
                     mintime = 0, maxtime,
                     binno = 6, lspace = 10, legloc = 1, keepscale = FALSE){
   Antnetx.f(dat,winspace,winsize,mintime,maxtime,binno,lspace,legloc,keepscale)
@@ -207,7 +207,7 @@ Antnetx.f <- function(trajs.antnetx, winspace.antnetx, winsize.antnetx,
 
 #PROPORTION OF INBOUND/OUTBOUND/NEITHER
 
-Antpropx <- function(dat = trajs, winspace = 10, winsize = 10,
+Antpropx <- function(dat = trajs, winspace = 20, winsize = 20,
                      mintime = 0, maxtime,
                      binno = 6, lspace = 10, legloc = 1, outbound = 1){
   Antpropx.f(dat,winspace,winsize,mintime, maxtime,binno,lspace,legloc,outbound)
@@ -277,7 +277,7 @@ Antpropx.f <- function(trajs.antpropx, winspace.antpropx, winsize.antpropx,
   for(i in seq(from = mintimef.antpropx, to = maxtimef.antpropx, by = winspacef.antpropx)){       
     if((i - winsizef.antpropx) < 1){
       points(x = i, y = mean((rprops[(1):(i+winsizef.antpropx)])), pch = 18, col = "gray26")
-      if((i-winspacef.antpropx+winsizef.antpropx) > 0){ #if statement to avoid erroring on first segment with a 0 index
+      if((i-winspacef.antpropx+winsizef.antpropx) > 0){ #if statement to avoid erroring on first segment with a sub-0 index
         segments(i - winspacef.antpropx, mean((rprops[(1):(i-winspacef.antpropx+winsizef.antpropx)])), 
                  i, mean((rprops[(1):(i+winsizef.antpropx)])), col = "gray26")
       }
@@ -299,6 +299,11 @@ Antpropx.f <- function(trajs.antpropx, winspace.antpropx, winsize.antpropx,
     lines(c(i,i), c(dims.antpropx[4],dims.antpropx[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
     text(i, dims.antpropx[5], labels = paste0(i / 300, "m"), col = rgb(0,0,0, alpha = 0.45))
   }
+  
+  #Add mean line
+  meanline <- mean(rprops[mintimef.antpropx:maxtimef.antpropx], na.rm = TRUE)                                  #get the mean line value
+  print(meanline)
+  lines(c(dims.antpropx[1],maxtimef.antpropx), c(meanline, meanline), type = "l", lty = 3)       #draw the mean line
   
   #Add legend
   if(legloc.antpropx == 1){
