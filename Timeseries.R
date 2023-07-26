@@ -15,22 +15,65 @@ source("Import.R")
 #binno.antno is the "bin number" for how many categories for coloring purposes
 #lspace.antno is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
+#Add a scaled version here to % of max seen out
 
-Antno <- function(trajs.antno = trajs, binno.antno = 6, lspace.antno = 3000){
+Antno <- function(dat = trajs, prop = FALSE,
+                  binno = 6, lspace = 3000, legloc = 1){
+  Antno.f(dat, prop, binno, lspace, legloc)
+}
+
+Antno.f <- function(trajs.antno, prop.antno,
+                    binno.antno, lspace.antno, legloc.antno){
+  
   antmax.antno <- max(rowSums(!is.na(trajs.antno[,,1])))             #Greatest number of trajectories in region during any frame
   maxtime.antno <- dim(trajs.antno)[1]                               #Ending frame
   
-  plot(rowSums(!is.na(trajs.antno[,,1])), main = "Number of ants out in a given frame", xlab = "Frame number", ylab = "Number of individual ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
-  dims.antno <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antno[1:4] are size of the plot, dims.antno[5] is calculating where to put the text just above the bottom of the frame, dims.antno[6] is where the dotted line ends just above the text
-  
-  for(i in seq(from = 0, to = maxtime.antno, by = lspace.antno)){     #Adds and labels dotted lines every 10 minutes
-    lines(c(i,i), c(dims.antno[4],dims.antno[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
-    text(i, dims.antno[5], labels = paste0(round(i / 300, 2), "m"), col = rgb(0,0,0, alpha = 0.45))
+  if(prop.antno == FALSE){
+    #Plot absolute number of ants
+    plot(rowSums(!is.na(trajs.antno[,,1])), main = "Number of ants out in a given frame", xlab = "Frame number", ylab = "Number of individual ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
+    dims.antno <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antno[1:4] are size of the plot, dims.antno[5] is calculating where to put the text just above the bottom of the frame, dims.antno[6] is where the dotted line ends just above the text
+    
+    for(i in seq(from = 0, to = maxtime.antno, by = lspace.antno)){     #Adds and labels dotted lines every 10 minutes
+      lines(c(i,i), c(dims.antno[4],dims.antno[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
+      text(i, dims.antno[5], labels = paste0(round(i / 300, 2), "m"), col = rgb(0,0,0, alpha = 0.45))
+    }
+    
+    legend("topleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+           fill = 1:binno.antno)
+  }else{
+    #Plot proportional number of ants relative to antmax
+    plot(rowSums(!is.na(trajs.antno[,,1]))/antmax.antno, main = "Proportion of ants out on trail compared to max", xlab = "Frame number", ylab = "Proportion of ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
+    dims.antno <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antno[1:4] are size of the plot, dims.antno[5] is calculating where to put the text just above the bottom of the frame, dims.antno[6] is where the dotted line ends just above the text
+    
+    for(i in seq(from = 0, to = maxtime.antno, by = lspace.antno)){     #Adds and labels dotted lines every 10 minutes
+      lines(c(i,i), c(dims.antno[4],dims.antno[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
+      text(i, dims.antno[5], labels = paste0(round(i / 300, 2), "m"), col = rgb(0,0,0, alpha = 0.45))
+    }
+    
+    #Add legend
+    if(legloc.antsums == 1){
+      legend("topleft", inset = 0.03, title = "Ants in region",
+             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+             fill = 1:binno.antno)
+    }else if(legloc.antno == 2){
+      legend("topright", inset = 0.03, title = "Ants in region",
+             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+             fill = 1:binno.antno)
+    }else if(legloc.antno == 3){
+      legend("bottomright", inset = 0.03, title = "Ants in region",
+             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+             fill = 1:binno.antno)
+    }else if(legloc.antno == 4){
+      legend("bottomleft", inset = 0.03, title = "Ants in region",
+             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+             fill = 1:binno.antno)
+    }else{
+      print("No legend added; choose 1-4 for topleft, topright, bottomright, or bottomleft.")
+    }
   }
   
-  legend("topleft", inset = 0.03, title = "Ants in region",
-         legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
-         fill = 1:binno.antno)
+  
 }
 
 
@@ -39,7 +82,13 @@ Antno <- function(trajs.antno = trajs, binno.antno = 6, lspace.antno = 3000){
 #binno.antsums is the "bin number" for how many categories for coloring purposes
 #lspace.antsums is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
-Antsums <- function(trajs.antsums, binno.antsums = 6, lspace.antsums = 3000){
+Antsums <- function(dat = trajs, 
+                    binno = 6, lspace = 3000, legloc = 1){
+  Antsums.f(dat, binno, lspace, legloc)
+}
+
+Antsums.f <- function(trajs.antsums, 
+                      binno.antsums, lspace.antsums, legloc.antsums){
   antmax.antsums <- max(rowSums(!is.na(trajs.antsums[,,1])))             #Greatest number of trajectories in region during any frame
   maxtime.antsums <- dim(trajs.antsums)[1]                               #Ending frame
   
@@ -51,9 +100,26 @@ Antsums <- function(trajs.antsums, binno.antsums = 6, lspace.antsums = 3000){
     text(i, dims.antsums[5], labels = paste0(i / 300, "m"), col = rgb(0,0,0, alpha = 0.45))
   }
   
-  legend("topleft", inset = 0.03, title = "Ants in region",
-         legend=c(paste("0 to", floor(antmax.antsums/binno.antsums)),paste(floor(antmax.antsums/binno.antsums*((2:binno.antsums)-1))+1, "to", floor(antmax.antsums/binno.antsums*(2:binno.antsums)))),
-         fill = 1:binno.antsums)
+  #Add legend
+  if(legloc.antsums == 1){
+    legend("topleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antsums/binno.antsums)),paste(floor(antmax.antsums/binno.antsums*((2:binno.antsums)-1))+1, "to", floor(antmax.antsums/binno.antsums*(2:binno.antsums)))),
+           fill = 1:binno.antsums)
+  }else if(legloc.antsums == 2){
+    legend("topright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antsums/binno.antsums)),paste(floor(antmax.antsums/binno.antsums*((2:binno.antsums)-1))+1, "to", floor(antmax.antsums/binno.antsums*(2:binno.antsums)))),
+           fill = 1:binno.antsums)
+  }else if(legloc.antsums == 3){
+    legend("bottomright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antsums/binno.antsums)),paste(floor(antmax.antsums/binno.antsums*((2:binno.antsums)-1))+1, "to", floor(antmax.antsums/binno.antsums*(2:binno.antsums)))),
+           fill = 1:binno.antsums)
+  }else if(legloc.antsums == 4){
+    legend("bottomleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antsums/binno.antsums)),paste(floor(antmax.antsums/binno.antsums*((2:binno.antsums)-1))+1, "to", floor(antmax.antsums/binno.antsums*(2:binno.antsums)))),
+           fill = 1:binno.antsums)
+  }else{
+    print("No legend added; choose 1-4 for topleft, topright, bottomright, or bottomleft.")
+  }
 }
 
 
@@ -63,7 +129,13 @@ Antsums <- function(trajs.antsums, binno.antsums = 6, lspace.antsums = 3000){
 #binno.antmeans is the "bin number" for how many categories for coloring purposes
 #lspace.antmeans is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
-Antmeans <- function(trajs.antmeans, binno.antmeans = 6, lspace.antmeans = 3000){
+Antmeans <- function(dat = trajs, 
+                     binno = 6, lspace = 3000, legloc = 1){
+  Antmeans.f(dat, binno, lspace, legloc)
+}
+
+Antmeans.f <- function(trajs.antmeans, 
+                       binno.antmeans, lspace.antmeans, legloc.antmeans){
   antmax.antmeans <- max(rowSums(!is.na(trajs.antmeans[,,1])))             #Greatest number of trajectories in region during any frame
   maxtime.antmeans <- dim(trajs.antmeans)[1]                               #Ending frame
   
@@ -77,9 +149,26 @@ Antmeans <- function(trajs.antmeans, binno.antmeans = 6, lspace.antmeans = 3000)
   
   lines(c(-1000,maxtime.antmeans), rep(mean(trajs.antmeans[,,4], na.rm = TRUE),2), type = "l", lty = 5)    #Dotted line representing mean of whole time series
   
-  legend("topleft", inset = 0.03, title = "Ants in region",
-         legend=c(paste("0 to", floor(antmax.antmeans/binno.antmeans)),paste(floor(antmax.antmeans/binno.antmeans*((2:binno.antmeans)-1))+1, "to", floor(antmax.antmeans/binno.antmeans*(2:binno.antmeans)))),
-         fill = 1:binno.antmeans)
+  #Add legend
+  if(legloc.antmeans == 1){
+    legend("topleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antmeans/binno.antmeans)),paste(floor(antmax.antmeans/binno.antmeans*((2:binno.antmeans)-1))+1, "to", floor(antmax.antmeans/binno.antmeans*(2:binno.antmeans)))),
+           fill = 1:binno.antmeans)
+  }else if(legloc.antmeans == 2){
+    legend("topright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antmeans/binno.antmeans)),paste(floor(antmax.antmeans/binno.antmeans*((2:binno.antmeans)-1))+1, "to", floor(antmax.antmeans/binno.antmeans*(2:binno.antmeans)))),
+           fill = 1:binno.antmeans)
+  }else if(legloc.antmeans == 3){
+    legend("bottomright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antmeans/binno.antmeans)),paste(floor(antmax.antmeans/binno.antmeans*((2:binno.antmeans)-1))+1, "to", floor(antmax.antmeans/binno.antmeans*(2:binno.antmeans)))),
+           fill = 1:binno.antmeans)
+  }else if(legloc.antmeans == 4){
+    legend("bottomleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antmeans/binno.antmeans)),paste(floor(antmax.antmeans/binno.antmeans*((2:binno.antmeans)-1))+1, "to", floor(antmax.antmeans/binno.antmeans*(2:binno.antmeans)))),
+           fill = 1:binno.antmeans)
+  }else{
+    print("No legend added; choose 1-4 for topleft, topright, bottomright, or bottomleft.")
+  }
 }
 
 
@@ -193,7 +282,7 @@ Antnetx.f <- function(trajs.antnetx, winspace.antnetx, winsize.antnetx,
     legend("bottomright", inset = 0.03, title = "Ants in region",
            legend=c(paste("0 to", floor(antmax.antnetx/binno.antnetx)),paste(floor(antmax.antnetx/binno.antnetx*((2:binno.antnetx)-1))+1, "to", floor(antmax.antnetx/binno.antnetx*(2:binno.antnetx)))),
            fill = 1:binno.antnetx)
-  }else if(legloc.antentx == 4){
+  }else if(legloc.antnetx == 4){
     legend("bottomleft", inset = 0.03, title = "Ants in region",
            legend=c(paste("0 to", floor(antmax.antnetx/binno.antnetx)),paste(floor(antmax.antnetx/binno.antnetx*((2:binno.antnetx)-1))+1, "to", floor(antmax.antnetx/binno.antnetx*(2:binno.antnetx)))),
            fill = 1:binno.antnetx)
@@ -318,7 +407,7 @@ Antpropx.f <- function(trajs.antpropx, winspace.antpropx, winsize.antpropx,
     legend("bottomright", inset = 0.03, title = "Ants in region",
            legend=c(paste("0 to", floor(antmax.antpropx/binno.antpropx)),paste(floor(antmax.antpropx/binno.antpropx*((2:binno.antpropx)-1))+1, "to", floor(antmax.antpropx/binno.antpropx*(2:binno.antpropx)))),
            fill = 1:binno.antpropx)
-  }else if(legloc.antentx == 4){
+  }else if(legloc.antpropx == 4){
     legend("bottomleft", inset = 0.03, title = "Ants in region",
            legend=c(paste("0 to", floor(antmax.antpropx/binno.antpropx)),paste(floor(antmax.antpropx/binno.antpropx*((2:binno.antpropx)-1))+1, "to", floor(antmax.antpropx/binno.antpropx*(2:binno.antpropx)))),
            fill = 1:binno.antpropx)
