@@ -7,6 +7,7 @@
 
 #Packages
 library(matrixStats) #for rowVars
+library(zoo) #for rollmean
 source("Import.R")
 
 
@@ -14,8 +15,6 @@ source("Import.R")
 #trajs.antno is the data
 #binno.antno is the "bin number" for how many categories for coloring purposes
 #lspace.antno is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
-
-#Add a scaled version here to % of max seen out
 
 Antno <- function(dat = trajs, prop = FALSE,
                   binno = 6, lspace = 3000, legloc = 1){
@@ -25,8 +24,8 @@ Antno <- function(dat = trajs, prop = FALSE,
 Antno.f <- function(trajs.antno, prop.antno,
                     binno.antno, lspace.antno, legloc.antno){
   
-  antmax.antno <- max(rowSums(!is.na(trajs.antno[,,1])))             #Greatest number of trajectories in region during any frame
-  maxtime.antno <- dim(trajs.antno)[1]                               #Ending frame
+  antmax.antno <- max(rowSums(!is.na(trajs.antno[,,1])))              #Get max trajectories for purposes of scaling, proportion, and legend
+  maxtime.antno <- dim(trajs.antno)[1]                                #Ending frame
   
   if(prop.antno == FALSE){
     #Plot absolute number of ants
@@ -38,9 +37,6 @@ Antno.f <- function(trajs.antno, prop.antno,
       text(i, dims.antno[5], labels = paste0(round(i / 300, 2), "m"), col = rgb(0,0,0, alpha = 0.45))
     }
     
-    legend("topleft", inset = 0.03, title = "Ants in region",
-           legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
-           fill = 1:binno.antno)
   }else{
     #Plot proportional number of ants relative to antmax
     plot(rowSums(!is.na(trajs.antno[,,1]))/antmax.antno, main = "Proportion of ants out on trail compared to max", xlab = "Frame number", ylab = "Proportion of ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
@@ -50,30 +46,28 @@ Antno.f <- function(trajs.antno, prop.antno,
       lines(c(i,i), c(dims.antno[4],dims.antno[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
       text(i, dims.antno[5], labels = paste0(round(i / 300, 2), "m"), col = rgb(0,0,0, alpha = 0.45))
     }
-    
-    #Add legend
-    if(legloc.antsums == 1){
-      legend("topleft", inset = 0.03, title = "Ants in region",
-             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
-             fill = 1:binno.antno)
-    }else if(legloc.antno == 2){
-      legend("topright", inset = 0.03, title = "Ants in region",
-             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
-             fill = 1:binno.antno)
-    }else if(legloc.antno == 3){
-      legend("bottomright", inset = 0.03, title = "Ants in region",
-             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
-             fill = 1:binno.antno)
-    }else if(legloc.antno == 4){
-      legend("bottomleft", inset = 0.03, title = "Ants in region",
-             legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
-             fill = 1:binno.antno)
-    }else{
-      print("No legend added; choose 1-4 for topleft, topright, bottomright, or bottomleft.")
-    }
   }
   
-  
+  #Add legend
+  if(legloc.antno == 1){
+    legend("topleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+           fill = 1:binno.antno)
+  }else if(legloc.antno == 2){
+    legend("topright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+           fill = 1:binno.antno)
+  }else if(legloc.antno == 3){
+    legend("bottomright", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+           fill = 1:binno.antno)
+  }else if(legloc.antno == 4){
+    legend("bottomleft", inset = 0.03, title = "Ants in region",
+           legend=c(paste("0 to", floor(antmax.antno/binno.antno)),paste(floor(antmax.antno/binno.antno*((2:binno.antno)-1))+1, "to", floor(antmax.antno/binno.antno*(2:binno.antno)))),
+           fill = 1:binno.antno)
+  }else{
+    print("No legend added; choose 1-4 for topleft, topright, bottomright, or bottomleft.")
+  }
 }
 
 
@@ -322,7 +316,7 @@ Antpropx.f <- function(trajs.antpropx, winspace.antpropx, winsize.antpropx,
   mintimef.antpropx <- mintime.antpropx*300
   lspacef.antpropx <- lspace.antpropx*300
   
-  #Get proportion of outbound ants; else condition (FALSE) gives inbound instead
+  #Get proportion of outbound ants; 1 = outbound, 0 = inbound, 2 = both outbound and inbound, -1 = no motion
   if(outbound.antpropx == 1){
     rprops <- rowSums(trajs.antpropx[,,1] < 0, na.rm = TRUE) / rowSums(!is.na(trajs.antpropx[,,1]), na.rm = TRUE)
   }else if(outbound.antpropx == 0){
