@@ -1,10 +1,7 @@
 #####Setting up data arrays######
 
 #add a way to decide on the path of the data other than the default
-
-
-#Get an import, mass import, and processing set
-
+library(pbapply)
 
 #dat = data to import
 #output = whether locations (1) or velocities (2) are returned
@@ -58,17 +55,47 @@ Import.single <- function(path, output = 2, sconv = 0.016, vconv = 0.08, default
 }
 
 
-#This function imports multiple files but does not process them
-
-Import.mass <- function(){
+#This function imports multiple files and has the option of processing them
+Import.massold <- function(process = TRUE, output.mass = 2, sconv.mass = 0.016, vconv.mass = 0.08){
   owd <- getwd()
   setwd("D:\\Processed\\")
   temp = list.files(pattern="*.csv")
-  myfiles = lapply(temp, read.csv)
+  trajlist = pblapply(temp, read.csv)
   setwd(owd)
   
+  if(process == TRUE){
+    #trajlist <- pblapply(trajlist, data.frame)
+    trajlist <- pblapply(trajlist, Process.single, output = output.mass, sconv = sconv.mass, vconv = vconv.mass)
+  }
+  
   #output <- list(temp, myfiles)
-  return(myfiles)
+  return(trajlist)
+}
+
+#Function to get names of files
+Import.mass <- function(process = FALSE, output.mass = 2, sconv.mass = 0.016, vconv.mass = 0.08){
+  owd <- getwd()                          #Save old working directory because for some reason the following functions only work in the current working directory
+  setwd("D:\\Processed\\")
+  naymes = list.files(pattern="*.csv")    #Get names of .csv files in wd
+  trajlist = pblapply(naymes, read.csv)   #read.csv all the files in the folder
+  setwd(owd)
+  
+  naymes <- gsub('.csv','',naymes)        #get rid of .csv at the end of the file names to make graph labeling prettier
+  outputtrajs <- list(naymes, trajlist)   #combine names and trajs into a single output list for the function
+  names(outputtrajs) <- c("Names", "Data")#
+  
+  if(process == TRUE){
+    #trajlist <- pblapply(trajlist, data.frame)
+    
+    #outputtrajs[2] <- pblapply(outputtrajs[2], Process.single, output = output.mass, sconv = sconv.mass, vconv = vconv.mass)
+    
+    for(i in 1:length(outputtrajs$Data)){
+      outputtrajs$Data[i] <- Process.single(outputtrajs$Data[i], output = output.mass, sconv = sconv.mass, vconv = vconv.mass)
+      print(i)
+    }
+  }
+  
+  return(outputtrajs)
 }
 
 

@@ -17,19 +17,21 @@ source("Import.R")
 #lspace.antno is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
 Antno <- function(dat = trajs, prop = FALSE,
-                  binno = 6, lspace = 3000, legloc = 1){
-  Antno.f(dat, prop, binno, lspace, legloc)
+                  binno = 6, lspace = 3000, legloc = 1,
+                  titles = "Number of ants out in a given frame"){
+  Antno.f(dat, prop, binno, lspace, legloc, titles)
 }
 
 Antno.f <- function(trajs.antno, prop.antno,
-                    binno.antno, lspace.antno, legloc.antno){
+                    binno.antno, lspace.antno, legloc.antno,
+                    titles.antno){
   
   antmax.antno <- max(rowSums(!is.na(trajs.antno[,,1])))              #Get max trajectories for purposes of scaling, proportion, and legend
   maxtime.antno <- dim(trajs.antno)[1]                                #Ending frame
   
   if(prop.antno == FALSE){
     #Plot absolute number of ants
-    plot(rowSums(!is.na(trajs.antno[,,1])), main = "Number of ants out in a given frame", xlab = "Frame number", ylab = "Number of individual ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
+    plot(rowSums(!is.na(trajs.antno[,,1])), main = titles.antno, xlab = "Frame number", ylab = "Number of individual ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
     dims.antno <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antno[1:4] are size of the plot, dims.antno[5] is calculating where to put the text just above the bottom of the frame, dims.antno[6] is where the dotted line ends just above the text
     
     for(i in seq(from = 0, to = maxtime.antno, by = lspace.antno)){     #Adds and labels dotted lines every 10 minutes
@@ -39,7 +41,7 @@ Antno.f <- function(trajs.antno, prop.antno,
     
   }else{
     #Plot proportional number of ants relative to antmax
-    plot(rowSums(!is.na(trajs.antno[,,1]))/antmax.antno, main = "Proportion of ants out on trail compared to max", xlab = "Frame number", ylab = "Proportion of ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
+    plot(rowSums(!is.na(trajs.antno[,,1]))/antmax.antno, main = titles.antno, xlab = "Frame number", ylab = "Proportion of ants on trail", col = floor( (rowSums(!is.na(trajs.antno[,,1]))/antmax.antno*binno.antno)+1 ))
     dims.antno <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antno[1:4] are size of the plot, dims.antno[5] is calculating where to put the text just above the bottom of the frame, dims.antno[6] is where the dotted line ends just above the text
     
     for(i in seq(from = 0, to = maxtime.antno, by = lspace.antno)){     #Adds and labels dotted lines every 10 minutes
@@ -124,16 +126,18 @@ Antsums.f <- function(trajs.antsums,
 #lspace.antmeans is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
 Antmeans <- function(dat = trajs, 
-                     binno = 6, lspace = 3000, legloc = 1){
-  Antmeans.f(dat, binno, lspace, legloc)
+                     binno = 6, lspace = 3000, legloc = 1,
+                     titles = "mean speeds over time"){
+  Antmeans.f(dat, binno, lspace, legloc, titles)
 }
 
 Antmeans.f <- function(trajs.antmeans, 
-                       binno.antmeans, lspace.antmeans, legloc.antmeans){
+                       binno.antmeans, lspace.antmeans, legloc.antmeans,
+                       titles.antmeans){
   antmax.antmeans <- max(rowSums(!is.na(trajs.antmeans[,,1])))             #Greatest number of trajectories in region during any frame
   maxtime.antmeans <- dim(trajs.antmeans)[1]                               #Ending frame
   
-  plot(rowMeans(trajs.antmeans[,,4], na.rm=TRUE), main = "Mean of speeds over time", xlab = "Frame number", ylab = "Mean speed (cm/sec)", col = floor( (rowSums(!is.na(trajs.antmeans[,,1]))/antmax.antmeans*binno.antmeans)+1 ))
+  plot(rowMeans(trajs.antmeans[,,4], na.rm=TRUE), main = titles.antmeans, xlab = "Frame number", ylab = "Mean speed (cm/sec)", col = floor( (rowSums(!is.na(trajs.antmeans[,,1]))/antmax.antmeans*binno.antmeans)+1 ))
   dims.antmeans <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antmeans[1:4] are size of the plot, dims.antmeans[5] is calculating where to put the text just above the bottom of the frame, dims.antmeans[6] is where the dotted line ends just above the text
   
   for(i in seq(from = 0, to = maxtime.antmeans, by = lspace.antmeans)){      #Adds and labels dotted lines every 10 minutes
