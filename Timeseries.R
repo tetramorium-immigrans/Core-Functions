@@ -126,26 +126,46 @@ Antsums.f <- function(trajs.antsums,
 #lspace.antmeans is the "line spacing" for graphical purposes (3000 frames = 10 minutes)
 
 Antmeans <- function(dat = trajs, 
-                     binno = 6, lspace = 3000, legloc = 1,
+                     mintime = 1, maxtime,
+                     binno = 6, lspace = 10, legloc = 1,
                      titles = "mean speeds over time"){
-  Antmeans.f(dat, binno, lspace, legloc, titles)
+  Antmeans.f(dat, mintime, maxtime, binno, lspace, legloc, titles)
 }
 
 Antmeans.f <- function(trajs.antmeans, 
+                       mintime.antmeans, maxtime.antmeans,
                        binno.antmeans, lspace.antmeans, legloc.antmeans,
                        titles.antmeans){
-  antmax.antmeans <- max(rowSums(!is.na(trajs.antmeans[,,1])))             #Greatest number of trajectories in region during any frame
-  maxtime.antmeans <- dim(trajs.antmeans)[1]                               #Ending frame
   
-  plot(rowMeans(trajs.antmeans[,,4], na.rm=TRUE), main = titles.antmeans, xlab = "Frame number", ylab = "Mean speed (cm/sec)", col = floor( (rowSums(!is.na(trajs.antmeans[,,1]))/antmax.antmeans*binno.antmeans)+1 ))
+  antmax.antmeans <- max(rowSums(!is.na(trajs.antmeans[,,1])))             #Greatest number of trajectories in region during any frame
+  
+  #Converting input arguments to frames
+  mintimef.antmeans <- mintime.antmeans*300
+  lspacef.antmeans <- lspace.antmeans*300
+  
+  #Ending frame found if not given as an argument
+  if(missing(maxtime.antmeans)){
+    maxtimef.antmeans <- dim(trajs.antmeans)[1]
+  }else{
+    maxtimef.antmeans <- maxtime.antmeans*300                                #Converting argument from minutes to frames
+  }
+  
+  #old simple plotting function
+  #plot(rowMeans(trajs.antmeans[,,4], na.rm=TRUE), main = titles.antmeans, xlab = "Frame number", ylab = "Mean speed (cm/sec)", col = floor( (rowSums(!is.na(trajs.antmeans[,,1]))/antmax.antmeans*binno.antmeans)+1 ))
+  
+  #new plotting function with mintime and maxtime
+  rmeans <- rowMeans(trajs.antmeans[,,4], na.rm=TRUE)
+  plot(x = mintimef.antmeans:maxtimef.antmeans, y = rmeans[mintimef.antmeans:maxtimef.antmeans], 
+       main = titles.antmeans, xlab = "Frame number", ylab = "Mean speed (cm/sec)", 
+       col = floor( (rowSums(!is.na(trajs.antmeans[,,1]))/antmax.antmeans*binno.antmeans)+1 ))
   dims.antmeans <- c(par("usr"), par("usr")[3]+(par("usr")[4]-par("usr")[3])/60, par("usr")[3]+2*((par("usr")[4]-par("usr")[3])/60)) #Values for time lines below; dims.antmeans[1:4] are size of the plot, dims.antmeans[5] is calculating where to put the text just above the bottom of the frame, dims.antmeans[6] is where the dotted line ends just above the text
   
-  for(i in seq(from = 0, to = maxtime.antmeans, by = lspace.antmeans)){      #Adds and labels dotted lines every 10 minutes
+  for(i in seq(from = 0, to = maxtimef.antmeans, by = lspacef.antmeans)){      #Adds and labels dotted lines every 10 minutes
     lines(c(i,i), c(dims.antmeans[4],dims.antmeans[6]), type = "l", lty = 3, lwd = 0.5, col = rgb(0,0,0, alpha = 0.25))
     text(i, dims.antmeans[5], labels = paste0(i / 300, "m"), col = rgb(0,0,0, alpha = 0.45))
   }
   
-  lines(c(-1000,maxtime.antmeans), rep(mean(trajs.antmeans[,,4], na.rm = TRUE),2), type = "l", lty = 5)    #Dotted line representing mean of whole time series
+  lines(c(-1000,maxtimef.antmeans), rep(mean(trajs.antmeans[,,4], na.rm = TRUE),2), type = "l", lty = 5)    #Dotted line representing mean of whole time series
   
   #Add legend
   if(legloc.antmeans == 1){

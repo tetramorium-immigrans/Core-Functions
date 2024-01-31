@@ -5,11 +5,11 @@ library(pbapply)
 
 #dat = data to import
 #output = whether locations (1) or velocities (2) are returned
-#sconv = conversion factor from pixels to cm (0.4/25 cm/pixel)
-#vconv = conversion factor from pixels/frame to cm/sec (5 frames/sec * 0.4/25 cm/pixel)
+#sconv = conversion factor from pixels to cm (#OLD 0.4/25 cm/pixel, #NEW 27/480 cm/pixel)
+#vconv = conversion factor from pixels/frame to cm/sec (#OLD 5 frames/sec * 0.4/25 cm/pixel, #NEW 5 * 27/480)
 #default.path = runs from a hard-coded location for convenience, but can be told to look for a file elsewhere if necessary
 
-Import.single <- function(path, output = 2, sconv = 0.016, vconv = 0.08, default.path = TRUE){
+Import.single <- function(path, output = 2, sconv = 0.05625, vconv = 0.28125, default.path = TRUE){
   
   #If/else for default.path; FALSE IS CURRENTLY NOT WORKING
   if(default.path == TRUE){
@@ -37,7 +37,7 @@ Import.single <- function(path, output = 2, sconv = 0.016, vconv = 0.08, default
     return(trajs)
     
   }else if(output == 1){
-    locs <- array(data=NA, dim=c(max(trajdat$Time), max(trajdat$X..Trajectory), 2))  #[,,1-2] = x,y coordinates of location vector
+    locs <- array(data=NA, dim=c(max(trajdat$Time), max(trajdat$X..Trajectory), 4))  #[,,1-2] = (1,2) x,y coordinates of location vector, (3) pathlength, and (4) distance_to_start
     maxy <- max(trajdat$y)                                  #To save finding max(y) over and over
     
     for(i in 1:nrow(trajdat)){
@@ -46,6 +46,8 @@ Import.single <- function(path, output = 2, sconv = 0.016, vconv = 0.08, default
       
       locs[o,n,1] <- trajdat$x[i]*sconv
       locs[o,n,2] <- (maxy - trajdat$y[i])*sconv  #(max - value) because AnTracks' coordinates start in the upper left; need to reverse the y for plotting purposes
+      locs[o,n,3] <- trajdat$pathlength[i]*sconv
+      locs[o,n,4] <- trajdat$distance_to_start[i]*sconv
     }
     return(locs)
     
@@ -73,7 +75,7 @@ Import.massold <- function(process = TRUE, output.mass = 2, sconv.mass = 0.016, 
 }
 
 #Function to get names of files
-Import.mass <- function(process = FALSE, output.mass = 2, sconv.mass = 0.016, vconv.mass = 0.08){
+Import.mass <- function(process = FALSE, output.mass = 2, sconv.mass = 0.05625, vconv.mass = 0.28125){
   owd <- getwd()                          #Save old working directory because for some reason the following functions only work in the current working directory
   setwd("D:\\Processed\\")
   naymes = list.files(pattern="*.csv")    #Get names of .csv files in wd
