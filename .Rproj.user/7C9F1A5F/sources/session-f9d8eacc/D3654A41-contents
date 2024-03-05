@@ -1,0 +1,95 @@
+##Antlengvar
+#A comparison of the circular variation in heading with the length of the trajectory
+
+#dat is data, indexed as (time in frames) x (trajectory #) x (x vec/y vec/heading/magnitude of motion)
+#outbound is how the analysis is restricted; 0 = all trajectories, 1 = outbound only, 2 = inbound only
+#active is whether to take the variance between all trajectory headings in a frame (TRUE) or the mean variance of all trajectories active during that frame (FALSE)
+
+#mintime and maxtime restrict the time being examined, entered in minutes (note mintimef and maxtimef within the function are in units of frames)
+#frate (frame rate) is used for converting from minutes to frames (default: 5 frames/s)
+
+#binno (bin number) is the number of colors used to code for relative numbers on the trail
+#legloc (legend location) takes values 1-4, starting in the upper left and going clockwise
+#keepscale is whether the axes should be scaled to the data in the restricted time (FALSE) or the data as a whole (TRUE)
+
+#titles is the option to manually enter a plot title; utilized by Mass.Function to pass file names for graph identification
+
+Antlengvar <- function(dat = trajs, outbound = 0, active = TRUE,
+                      mintime, maxtime, frate = 5,
+                      binno = 6, legloc = 2, keepscale = FALSE, 
+                      titles, ...){
+  Antlengvar.f(dat, outbound, active, mintime, maxtime, frate, binno, legloc, keepscale, titles, ...)
+}
+
+Antlengvar.f <- function(trajs.antlengvar, outbound.antlengvar, active.antlengvar,
+                        mintime.antlengvar, maxtime.antlengvar, frate.antlengvar,
+                        binno.antlengvar, legloc.antlengvar, keepscale.antlengvar,
+                        titles.antlengvar, ...){
+  
+  #Greatest number of trajectories in region during any frame (for purposes of coloring)
+  antmax.antlengvar <- max(rowSums(!is.na(trajs.antlengvar[,,4])))             
+  
+  #mintime/maxtime: finding and converting
+  minmaxf.antlengvar <- Minmax(trajs.antlengvar, mintime = mintime.antlengvar, maxtime = maxtime.antlengvar, frate = frate.antlengvar)
+  mintimef.antlengvar <- minmaxf.antlengvar[1]
+  maxtimef.antlengvar <- minmaxf.antlengvar[2]
+  
+  #X-axis and graphcol found first from total data set
+  eks <- rowSums(!is.na(trajs.antlengvar[mintimef.antlengvar:maxtimef.antlengvar,,4]))
+  graphcol <- floor( (rowSums(!is.na(trajs.antlengvar[mintimef.antlengvar:maxtimef.antlengvar,,4]))/antmax.antlengvar*binno.antlengvar)+1 )
+  
+  #Y-axis (means) found after set is filtered for inbound/outbound
+  if(outbound.antlengvar != 0){
+    trajs.antlengvar <- Outbound(trajs.antlengvar, outbound.antlengvar)
+  }
+  
+  if(active.antlengvar == TRUE){
+    cvars <- (apply(trajs.antlengvar[,,3], 2, angular.variance, na.rm = TRUE))/2       #CIRCULAR VERSION (divide by 2 because a.v returns value as *2)
+    
+    keepvars <- pbsapply(1:dim(trajs.antlengvar)[1], FUN = function(x){            #Find the mean of the trajectory variances for total time (keepscale again)
+      activetrajs <- Active(trajs.antlengvar, x)
+      if(length(activetrajs) > 0){                                              #If there are no trajectories active at a time return 0, otherwise mean
+        mean(cvars[activetrajs], na.rm = TRUE)
+      }else{return(NA)}
+    })
+    
+    wye <- keepvars[mintimef.antlengvar:maxtimef.antlengvar]                     #Subset those to be graphed
+    
+    ylab.antlengvar <- "Mean circular variance of trajectory headings"
+    
+  }else if(active.antlengvar == FALSE){
+    wye <- (apply(trajs.antlengvar[mintimef.antlengvar:maxtimef.antlengvar,,3], 1, angular.variance, na.rm = TRUE))/2
+    
+    ylab.antlengvar <- "Circular variance of ant headings"
+  }
+  
+  #If not provided, assembles the main title of the plot based on input arguments
+  if(missing(titles.antlengvar)){
+    plotitle <- paste0('# of ants vs. circular variance of heading in',
+                       if(outbound.antlengvar==1){
+                         ' outbound'
+                       }else if(outbound.antlengvar==2){
+                         ' inbound'
+                       }else{
+                         ' inbound and outbound'
+                       },
+                       ' ants (', round(mintimef.antlengvar / (frate.antlengvar*60)), 'm to ', round(maxtimef.antlengvar/(frate.antlengvar*60)),'m)'
+    )
+    
+  }else{plotitle <- titles.antlengvar}
+  
+  
+  #Plotting function with KEEPSCALE option
+  plot(x = eks, y = wye,
+       xlim = if(keepscale.antlengvar == TRUE){c(0,antmax.antlengvar)}else{NULL},
+       ylim = if(keepscale.antlengvar == TRUE){c(min(keepvars, na.rm = TRUE),max(keepvars, na.rm = TRUE))}else{NULL},
+       main = plotitle, xlab = '# of ants in region', ylab = ylab.antlengvar,
+       col = graphcol)
+  
+  
+  #Adding visuals to graph
+  abline(mean(trajs.antlengvar[,,4], na.rm = TRUE), 0, lty = 5)  #Mean of circular variance of ALL data (not just mintime-maxtime)
+  abline(lm(wye~eks), lty = 3)                                    #Linear trend line (of only selected time)
+  Legendno(type = 1, binno = binno.antlengvar, legloc = legloc.antlengvar, antmax = antmax.antlengvar) #Legend
+}
+

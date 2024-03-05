@@ -1,0 +1,39 @@
+##Massfunction
+
+
+Mass.function <- function(dat.mf = masstrajs,
+                         fun, xdim, ydim,
+                         mintime.mf = 0, maxtime.mf, frate.mf = 5, titles.mf, ...){
+  
+  if(missing(xdim)){
+    xdim <- ceiling(sqrt(length(dat.mf$Data)))
+  }
+  
+  if(missing(ydim)){
+    ydim <- ceiling(sqrt(length(dat.mf$Data)))
+  }
+  
+  if(missing(titles.mf)){
+    titles.mf <- ''
+  }else{
+    titles.mf <- paste0(titles.mf, ',')
+  }
+  
+  nf <- par()
+  par(mfrow = c(ydim,xdim))
+  
+  for(i in 1:length(dat.mf$Data)){
+   if(i > (xdim * ydim)){
+     print("Filled designated grid size; stopping function")
+     break                                          #stops loop if it goes beyond the designated grid size
+   }
+   
+   fun(dat = array(unlist(dat.mf$Data[i]), dim = as.vector(sapply(dat.mf$Data[i], dim))), 
+       mintime = mintime.mf, maxtime = maxtime.mf, frate = frate.mf, titles = paste(titles.mf, dat.mf$Names[i]), ...)
+   
+  }
+  
+  par(mfrow = c(1,1))
+  
+}
+
