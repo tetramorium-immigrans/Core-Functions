@@ -1,5 +1,5 @@
 ##ANDHEAD
-#Change in heading variance with time.  Graphs a mean line as well.
+#Change in heading with time.  Graphs a mean line as well.
 
 #dat is data, indexed as (time in frames) x (trajectory #) x (x vec/y vec/heading/magnitude of motion)
 #outbound is how the analysis is restricted; 0 = all trajectories, 1 = outbound only, 2 = inbound only
@@ -43,7 +43,7 @@ Anthead.f <- function(trajs.anthead, outbound.anthead, bytime.anthead,
   
   #If not provided, assembles the main title of the plot based on input arguments
   if(missing(titles.anthead)){
-    plotitle <- paste0('Circular variance of',
+    plotitle <- paste0('Mean angle of',
      if(outbound.anthead==1){
        ' outbound'
      }else if(outbound.anthead==2){
@@ -63,34 +63,31 @@ Anthead.f <- function(trajs.anthead, outbound.anthead, bytime.anthead,
   
   if(bytime.anthead == TRUE){
     
-    #rvars <- rowVars(trajs.anthead[,,3], na.rm = TRUE)                         #Find all the row variances (for purposes of keepscale) NAIVE VARIANCE
-    #rvars <- circVars(trajs.anthead, bytime.anthead)                           #CIRCVARS VERSION
-    rvars <- (apply(trajs.anthead[,,3], 1, angular.variance, na.rm = TRUE))/2       #CIRCULAR VERSION (divide by 2 because a.v returns value as *2)
+    rvars <- apply(trajs.anthead[,,3], 1, mean.circular, na.rm = TRUE)          #calculate mean angle
     
     keepvars <- rvars[mintimef.anthead:maxtimef.anthead]                        #Subset those to be graphed
     plotvars <- keepvars                                                        #Redundant in bytime==TRUE, but used for average dots below
-    ylab.anthead <- "Circular variance of ant headings"
+    ylab.anthead <- "Mean angle of ant headings (radians)"
     
   }else if(bytime.anthead == FALSE){
-    print("Calculating mean variances and average points")
-    #cvars <- colVars(trajs.anthead[,,3], na.rm = TRUE)                         #Find all the column (trajectory) variances (for purposes of keepscale) NAIVE VARIANCE
-    #cvars <- circVars(trajs.anthead, bytime.anthead)                           #CIRCVARS VERSION
-    cvars <- (apply(trajs.anthead[,,3], 2, angular.variance, na.rm = TRUE))/2       #CIRCULAR VERSION (divide by 2 because a.v returns value as *2)
+    print("Calculating angles and average points")
     
-    keepvars <- pbsapply(1:dim(trajs.anthead)[1], FUN = function(x){            #Find the mean of the trajectory variances for total time (keepscale again)
+    cvars <- apply(trajs.anthead[,,3], 2, mean.circular, na.rm = TRUE)          #Calculate mean angles
+    
+    keepvars <- pbsapply(1:dim(trajs.anthead)[1], FUN = function(x){            #Find the mean of the angles for total time (keepscale again)
       activetrajs <- Active(trajs.anthead, x)
       if(length(activetrajs) > 0){                                              #If there are no trajectories active at a time return 0, otherwise mean
-        mean(cvars[activetrajs], na.rm = TRUE)
+        mean.circular(cvars[activetrajs], na.rm = TRUE)
       }else{return(NA)}
     })
     
     plotvars <- keepvars[mintimef.anthead:maxtimef.anthead]                     #Subset those to be graphed
 
-    ylab.anthead <- "Mean circular variance of trajectory headings"
+    ylab.anthead <- "Mean angle of trajectory headings (radians)"
   }
   
   plot(x = mintimef.anthead:maxtimef.anthead, y = plotvars, 
-       ylim = if(keepscale.anthead == TRUE){c(min(keepvars, na.rm = TRUE),max(keepvars, na.rm = TRUE))}else{NULL},
+       ylim = if(keepscale.anthead == TRUE){c(-pi, pi)}else{NULL},
        main = plotitle, xlab = "Frame Number", ylab = ylab.anthead, 
        col = graphcol)
   

@@ -1,9 +1,0 @@
-#Active
-
-Active <- function(mintime.a, maxtime.a){
-  unique(unlist(sapply(mintimef.antlengdist:maxtimef.antlengdist, #Calculate which trajectories are active during the given timeframe
-                       FUN = function(x){which(!is.na(locs.antlengdist[x,,3]))})))
-}
-
-activetrajs <- unique(unlist(sapply(mintimef.antlengdist:maxtimef.antlengdist, #Calculate which trajectories are active during the given timeframe
-                                    FUN = function(x){which(!is.na(locs.antlengdist[x,,3]))})))

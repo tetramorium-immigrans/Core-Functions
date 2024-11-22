@@ -1,4 +1,4 @@
-##Antlengdist (CURRENTLY NOT WORKING WITH MASS.FUNCTION)
+##Antlengdist (CURRENTLY NOT WORKING WITH MASS FUNCTION)
 #Produces a histogram of the path lengths/durations of the trajectories active during a given time frame
 
 #dat is vector data; by default it is indexed as (time in frames) x (trajectory #) x (x vec/y vec/heading/magnitude of motion)
