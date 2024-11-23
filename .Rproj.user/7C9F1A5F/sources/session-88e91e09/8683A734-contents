@@ -16,7 +16,7 @@ keepsums2 <- sum(rsums[keepsums])
 ravgs <- apply(trajbase$xvel, 1, function(x){mean(x[x != 0])})
 
 
-trajs <- Import.single(300/a0320_240820)
+trajs3 <- Import.single(300/a0320_240820)
 
 testi <- testy
 testi[which(testy == 0)] <- c(11,11,11,11)

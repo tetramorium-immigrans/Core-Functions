@@ -60,12 +60,12 @@ Process.single <- function(trajdatinput, rm0.p = TRUE,
                            mass.p = FALSE){
   trajdat <- data.frame(trajdatinput)  #code won't work if it's not a data frame
   
-  ##rm0.p - identify trajectories with a median speed of 0 and remove them from data
-  
-  # if(rm0.p == TRUE){
-  #   rmlist <- tapply(trajdat$speed, factor(trajdat$X..Trajectory), median)
-  #   #trajdat <- trajdat[!trajdat$X..Trajectory %in% which(rmlist == 0),]
-  # }
+  #Shows progress bar timers if being individually processed but omits them during mass processing for clarity's sake
+  if(mass.p == TRUE){
+    pboptions(type = "none")
+  }else{
+    pboptions(type = "timer")
+  }
 
   ##Setting up sparse matrices for non-extended variables
   
@@ -130,15 +130,18 @@ Process.single <- function(trajdatinput, rm0.p = TRUE,
   
   ##Interpolating more complex values
   
-  xvel <- cos(heading)                                                          #Counting on NAs in heading to return NAs in the xvel and yvel
+  #xvel <- cos(heading)                                                          
+  xvel <- trajreturn$speed * cos(heading)                                       #Counting on NAs in heading to return NAs in the xvel and yvel
   yvel <- trajreturn$speed * sin(heading)
   if(mass.p == FALSE){print('Interpolating x-velocity values')}
-  xtemp <- interna(xvel)                                                        #Fills in the NAs in xvel and holds it in a temporary matrix (for heading calculations)
-  trajreturn <- c(trajreturn, xvel = xtemp * trajreturn$speed)                  
+  trajreturn <- c(trajreturn, xvel = interna(xvel))  ##                         #Fills in NAs in xvel
+  #xtemp <- interna(xvel)                                                        #Fills in the NAs in xvel and holds it in a temporary matrix (for heading calculations)
+  #trajreturn <- c(trajreturn, xvel = xtemp * trajreturn$speed)                  
   if(mass.p == FALSE){print('Interpolating y-velocity values')}
   trajreturn <- c(trajreturn, yvel = interna(yvel))                             #Fills in the NAs in yvel
   
-  heading[which(is.na(heading))] <- -acos(xtemp[which(is.na(heading))])         #Use xvel to back-calculate an interpolated heading (since can't linearly estimate polar coordinates)
+  #heading[which(is.na(heading))] <- -acos(xtemp[which(is.na(heading))])         #Use xvel to back-calculate an interpolated heading (since can't linearly estimate polar coordinates)
+  heading[which(is.na(heading))] <- -acos(xvel[which(is.na(heading))]/trajreturn$speed[which(is.na(heading))])
   trajreturn$heading <- heading                                                 #Overwrite the earlier placeholder with the final data
   
   ##Adding in extended values if flagged
@@ -182,26 +185,7 @@ Process.single <- function(trajdatinput, rm0.p = TRUE,
     }
   }
   
-  # #rm0.p - removing objects that never move (median speed of 0)
-  # if(rm0.p == TRUE){
-  #   trajreturn$datrange <- trajreturn$datrange[!rmlist == 0,]
-  # 
-  #   trajreturn$x <- trajreturn$x[which(!rmlist == 0),]
-  #   trajreturn$y <- trajreturn$y[which(!rmlist == 0),]
-  # 
-  #   trajreturn$speed <- trajreturn$speed[which(!rmlist == 0),]
-  #   trajreturn$heading <- trajreturn$heading[which(!rmlist == 0),]
-  # 
-  #   trajreturn$xvel <- trajreturn$xvel[which(!rmlist == 0),]
-  #   trajreturn$yvel <- trajreturn$yvel[which(!rmlist == 0),]
-  # 
-  #   if(extended.p == TRUE){
-  #     trajreturn$pathlength <- trajreturn$pathlength[which(!rmlist == 0),]
-  #     trajreturn$distance <- trajreturn$distance[which(!rmlist == 0),]
-  #     trajreturn$msd <- trajreturn$msd[which(!rmlist == 0),]
-  #   }
-  # }
-  
+  pboptions(type = "timer")
   return(trajreturn)
   
 }
@@ -237,18 +221,33 @@ Import.mass <- function(folder, category = "*",
   #Processing
   if(process == TRUE){
     print("Processing .csv files")
-    trajlist <- pbsapply(trajlist, Process.single, 
-                         rm0.p = rm0.mass,
-                         extended.p = extended.mass,
-                         conv.p = conv.mass, frate.p = frate.mass,
-                         mass.p = mass.mass, ...)
+    trajout <- vector(mode = "list", length = length(trajlist))
+    for(i in 1:length(trajlist)){
+      trajout[[i]] <- Process.single(trajlist[i],
+                              rm0.p = rm0.mass,
+                              extended.p = extended.mass,
+                              conv.p = conv.mass, frate.p = frate.mass,
+                              mass.p = mass.mass, ...)
+    }
+    
+    # trajout <- pbsapply(trajlist, Process.single,                            
+    #                      rm0.p = rm0.mass,
+    #                      extended.p = extended.mass,
+    #                      conv.p = conv.mass, frate.p = frate.mass,
+    #                      mass.p = mass.mass, ...)
+    
+    #trajout <- f
+    #Take trajlist, divide it into length(naymes) bits, distribute these into sub-lists
+    
   }else{print("Skipping processing")}
   
   #Prettying things up
   naymes <- gsub('.csv','',naymes)                                              #get rid of .csv at the end of the file names to make graph labeling prettier
-  masstrajs <- list(naymes, trajlist)                                           #combine names and trajs into a single output list for the function
-  names(masstrajs) <- c("Names", "Data")                                        #Name columns
+  names(trajout) <- naymes
   
-  return(masstrajs)
+  # masstrajs <- list(naymes, trajout)                                            #combine names and trajs into a single output list for the function
+  # names(masstrajs) <- c("Names", "Data")                                        #Name columns
+  
+  return(trajout)
 }
 
