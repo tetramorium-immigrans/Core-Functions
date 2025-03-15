@@ -9,7 +9,9 @@ Direction <- function(trajs, output = 0){
   #trajreturn <- list()
   trajreturn <- trajs
   
-  if(output == 1){
+  if(output == 0){
+    return(trajreturn)
+  }else if(output == 1){
     filtered <- rowSums(trajs$xvel) < 0
   }else if(output == 2){
     filtered <- rowSums(trajs$xvel) > 0

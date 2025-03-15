@@ -10,12 +10,10 @@
 Minmax <- function(dat, mintime, maxtime, lspace, frate = 5){
   if(missing(mintime)){
     mintimef <- min(which(colSums(!is.na(dat$x)) > 0))  #Finds the earliest frame that has data
-    
-    #mintimef <- 1                                     #Mintime is set to 1 for purposes of indexing in the functions
   }else{
     mintimef <- mintime*frate*60
     if(mintimef == 0){
-      mintimef <- 1
+      mintimef <- 1                                     #Mintime is set to frame 1 for purposes of indexing in the functions
     }
   }
   

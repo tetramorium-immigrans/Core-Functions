@@ -4,7 +4,7 @@
 #rang (range) is a sequence of frames to check (usually passed as mintimef:maxtimef)
 
 Active <- function(dat, rang){
-  activetrajs <- unique(unlist(sapply(rang, FUN = function(z){which((dat$xvel[,z]) != 0)})))
+  activetrajs <- unique(unlist(sapply(rang, FUN = function(z){which((dat$x[,z]) != 0)})))
   return(activetrajs)
 }
 

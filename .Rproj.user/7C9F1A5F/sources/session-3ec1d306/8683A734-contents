@@ -1,0 +1,197 @@
+trajinterna <- Import.single(300/a0320_240820)
+
+Antlocs(trajinterna, mtime = 2)
+
+rsums <- rowSums(trajbase$xvel) 
+
+keepsums <- pbsapply(1:dim(trajbase$xvel)[2], FUN = function(x){       #Find the active trajectories for each time step and sum their x-velocities
+  activetrajs <- Active(trajbase, x)
+  sum(rsums[activetrajs])
+  })
+
+
+keepsums2 <- sum(rsums[keepsums])
+
+
+ravgs <- apply(trajbase$xvel, 1, function(x){mean(x[x != 0])})
+
+
+trajs3 <- Import.single(300/a0320_240820)
+
+testi <- testy
+testi[which(testy == 0)] <- c(11,11,11,11)
+
+#interpolate x and y data
+#Replace speed data at heading = -1 with 1e-5
+#interpolate remaining 0s in speed data
+
+#Somehow mark heading = -1 values in a special way in heading data
+#calculate known xvel and yvel
+#Interpolate from known xvel and yvel values
+#Back-calculate into heading
+
+#multiply by sconv and vconv at the end
+
+trajs <- Import.single(300/a0320_240820)
+
+antmax.antnetx <- max(colSums((trajreturn$x) != 0))
+graphcol <- floor( (colSums((trajreturn$x) != 0)/antmax.antnetx*6)+1 )
+
+
+
+x2 <- Matrix(data = 0, nrow = sparsedims[1], ncol = sparsedims[2], sparse = TRUE)
+x2[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$x * conv.p
+
+
+
+intout <- pbapply(x, 1, function(z){
+  tmin <- min(which(z != 0))
+  tmax <- max(which(z != 0))
+  
+  z[tmin:tmax] <- replace(z[tmin:tmax], which(z[tmin:tmax] == 0), NA)
+  z[tmin:tmax] <- approx(z, xout = tmin:tmax)$y
+  
+})
+
+z <- x[15,]
+tmin <- min(which(z != 0))
+tmax <- max(which(z != 0))
+
+ph2 <- replace(z[tmin:tmax], which(z[tmin:tmax] == 0), NA)
+ph3 <- approx(ph2, n = length(ph2))$y
+
+ph4 <- approx(replace(z[tmin:tmax], which(z[tmin:tmax] == 0), NA), n = length(z[tmin:tmax]))$y
+
+
+ph <- approx(replace(z[tmin:tmax], which(z[tmin:tmax] == 0), NA) , xout = tmin:tmax)$y
+
+innie <- pbapply(trajs$x, 1, function(z){
+  mintemp <- min(which(z != 0))
+  maxtemp <- max(which(z != 0))
+  
+  datmin <- c(datmin, mintemp)
+  datmax <- c(datmax, maxtemp)
+  
+  z[maxtemp] - z[mintemp]
+})
+
+bug <- apply(speed, 1, function(r){min(which(r != 0))})  
+
+
+act <- apply(masstrajs[[1]]$x, 2, FUN = function(z){which(z != 0)})
+
+
+
+
+par(mfrow = c(4,4)) 
+for(i in 1001:1016){
+  plot(dat.propx$speed[i, min(which(dat.propx$speed[i,] != 0)):max(which(dat.propx$speed[i,] != 0))],
+       ylim = c(0,3))
+}
+par(mfrow = c(1,1)) 
+
+goo <- dat.propx$speed
+goo[dat.propx$speed == 0] <- NA
+
+hist(apply(goo, 1, median))
+
+
+
+par(mfrow = c(4,4)) 
+for(i in 1:16){
+  goo <- mass3020[[i]]$speed
+  goo[mass3020[[i]]$speed == 0] <- NA
+  hist(apply(goo, 1, mean, na.rm = TRUE))
+}
+par(mfrow = c(1,1)) 
+
+
+
+activelength <- antspeed(mass3020$a3020_230628, graph = FALSE, datreturn = TRUE)
+plotspeeds <- antspeed(mass3020$a3020_230628, graph = FALSE, datreturn = TRUE, direction = 1)
+
+plot(activelength, plotspeeds)
+abline(lm(plotspeeds ~ activelength, list(plotspeeds, activelength)))
+
+#find the closest X in x
+#find the closest X in y
+#calculate the mean squared distance
+#take the lowest X of them
+
+
+
+
+dat <- data.frame(activecount = plotdat$activecount, plotdat = plotdat$plotdat)
+
+lm1 <- lm(plotdat ~ activecount, dat)
+lm2 <- lm(plotdat ~ activecount + I(activecount^2), dat)
+lm3 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3), dat)
+lm4 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4), dat)
+lm5 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4) + I(activecount^5), dat)
+lm6 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4) + I(activecount^5) + I(activecount^6), dat)
+lm7 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4) + I(activecount^5) + I(activecount^6) + I(activecount^7), dat)
+lm8 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4) + I(activecount^5) + I(activecount^6) + I(activecount^7) + I(activecount^8), dat)
+lm9 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4) + I(activecount^5) + I(activecount^6) + I(activecount^7) + I(activecount^8) + I(activecount^9), dat)
+
+
+y1 <- predict.lm(lm1, newdata = data.frame(activecount = x0))
+y2 <- predict.lm(lm2, newdata = data.frame(activecount = x0))
+y3 <- predict.lm(lm3, newdata = data.frame(activecount = x0))
+y4 <- predict.lm(lm4, newdata = data.frame(activecount = x0))
+y5 <- predict.lm(lm5, newdata = data.frame(activecount = x0))
+y6 <- predict.lm(lm6, newdata = data.frame(activecount = x0))
+y7 <- predict.lm(lm7, newdata = data.frame(activecount = x0))
+y8 <- predict.lm(lm8, newdata = data.frame(activecount = x0))
+y9 <- predict.lm(lm9, newdata = data.frame(activecount = x0))
+
+lines(x0, y1, col = 2)
+lines(x0, y2, col = 3)
+lines(x0, y3, col = 4)
+lines(x0, y4, col = 5)
+lines(x0, y5, col = 6)
+lines(x0, y6, col = 7)
+lines(x0, y7, col = 8)
+lines(x0, y8, col = 9)
+lines(x0, y9, col = 10)
+
+aictab(cand.set = list(lm1, lm2, lm3, lm4, lm5, lm6, lm7, lm8, lm9))
+
+
+
+massdat <- Mass.function(antfund, masstrajs, datreturn = TRUE)
+
+mt1 <- antfund(masstrajs$a0320_240820, datreturn = TRUE)
+mt2 <- antfund(masstrajs$a3020_230628, datreturn = TRUE)
+mt3 <- antfund(masstrajs$a3020_230728, datreturn = TRUE)
+mt4 <- antfund(masstrajs$a3020_230729_1, datreturn = TRUE)
+mt5 <- antfund(masstrajs$a3020_230805_1, datreturn = TRUE)
+mt6 <- antfund(masstrajs$a3030_240811, datreturn = TRUE)
+
+massdat <- list(mt1, mt2, mt3, mt4, mt5, mt6)
+
+activetemp <- vector()
+plotemp <- vector()
+
+for(i in 1:length(massdat)){
+  datemp <- massdat[[i]]
+  activetemp <- c(activetemp, datemp$activecount)
+  plotemp <- c(plotemp, datemp$plotdat)
+}
+
+massdat2 <- data.frame(activecount = activetemp, plotdat = plotemp)
+
+
+lmm <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3), massdat2)
+ym <- predict.lm(lmm, newdata = data.frame(activecount = 0:120))
+lines(0:120, ym, col = 2)
+
+#---
+lmdat <- data.frame(plotdat = plotdat, activecount = activecount, data = aicat)
+lm9 <- lm(plotdat ~ activecount + I(activecount^2) + I(activecount^3) + I(activecount^4) + I(activecount^5) + I(activecount^6) + I(activecount^7) + I(activecount^8) + I(activecount^9), lmdat)
+
+newx <- seq(min(aicat$x), max(aicat$x), length.out=100)
+preds <- predict(lm9, newdata = data.frame(x=newx), interval = 'confidence')
+
+lines(newx, aicpred[ ,3], lty = 'dashed', col = 'blue')
+lines(newx, aicpred[ ,2], lty = 'dashed', col = 'blue')
+polygon(c(rev(newx), newx), c(rev(aicpred[ ,3]), aicpred[ ,2]), col = 'grey', border = NA)

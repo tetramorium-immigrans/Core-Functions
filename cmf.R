@@ -5,20 +5,23 @@
 #assess whether it is out or in
 #Go from min time to min time adding or subtracting a direction and then graph over time
 
-cmf <- function(dat = trajs,
+#ncmf = whether to normalize it based on the number of total trajectories in the video
+
+cmf <- function(dat = trajs, ncmf = TRUE,
                 mintime, maxtime, frate = 5,
                 binno = 6, lspace = 10, legloc = 2, keepscale = FALSE, titles, ...){
   
-  cmf.f(dat.cmf = dat, mintime.cmf = mintime, maxtime.cmf = maxtime, frate.cmf = frate, binno.cmf = binno, 
-        lspace.cmf = lspace, legloc.cmf = legloc, keepscale.cmf = keepscale, titles.cmf = titles)
+  cmf.f(dat.cmf = dat, ncmf.cmf = ncmf, mintime.cmf = mintime, maxtime.cmf = maxtime, frate.cmf = frate, binno.cmf = binno, 
+        lspace.cmf = lspace, legloc.cmf = legloc, keepscale.cmf = keepscale, titles.cmf = titles, ...)
 }
 
-cmf.f <- function(dat.cmf = trajs,
+cmf.f <- function(dat.cmf = trajs, ncmf.cmf,
                   mintime.cmf, maxtime.cmf, frate.cmf,
                   binno.cmf, lspace.cmf, legloc.cmf, keepscale.cmf, titles.cmf, ...){
   
   #Greatest number of trajectories in region during any frame (for coloring purposes)
   antmax.cmf <- max(colSums((dat.cmf$x) > 0))
+  
   
   #mintime/maxtime: finding and converting
   minmaxf.cmf <- Minmax(dat.cmf, mintime = mintime.cmf, maxtime = maxtime.cmf, lspace = lspace.cmf, frate = frate.cmf)
@@ -26,12 +29,12 @@ cmf.f <- function(dat.cmf = trajs,
   maxtimef.cmf <- minmaxf.cmf[2]
   lspacef.cmf <- minmaxf.cmf[3]
   
-  ecks <- dat.cmf$x[,mintimef.cmf:maxtimef.cmf]
+  ecks <- dat.cmf$x[,mintimef.cmf:maxtimef.cmf]                                 #Extracts x values in specified time
+  ecks <- ecks[which(rowSums(ecks) > 0),]                                       #Removes trajectories not active during specified time
   
-  datmin <- apply(ecks, 1, function(z){min(which(z != 0))})
-  #datmax <- apply(ecks, 1, function(z){max(which(z != 0))})
+  datmin <- apply(ecks, 1, function(z){min(which(z != 0))})                     #Find the start frame for each trajectory
   
-  innie <- apply(ecks, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0
+  innie <- apply(ecks, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0 #Create a boolean for all trajectories as to whether they are inward (TRUE) or outward (FALSE)
   
   # datmin <- c()
   # datmax <- c()
@@ -51,7 +54,7 @@ cmf.f <- function(dat.cmf = trajs,
   maxval <- dim(ecks)[2]
   cmfvalues <- rep(0, length.out = maxval)
   
-  for(i in 1:length(datmin)){
+  for(i in 1:length(datmin)){ 
     if(innie[i] == TRUE){
       cmfvalues[datmin[i]:maxval] <- cmfvalues[datmin[i]:maxval] + 1
     }else{
@@ -59,15 +62,26 @@ cmf.f <- function(dat.cmf = trajs,
     }
   }
   
-  graphcol <- floor( (colSums((dat.cmf$x[,mintimef.cmf:maxtimef.cmf]) != 0)/antmax.cmf*binno.cmf)+1 ) #figuring out graph point coloration
+  ##Normalize
+  if(ncmf.cmf == TRUE){
+    cmfvalues <- cmfvalues / dim(dat.cmf$x)[1]
+  }
   
+  ##Plotting function
+  
+  #If not provided, assembles the main title of the plot based on input arguments
   counts <- sum(innie)                                                          #For the title
+  
+  if(missing(titles.cmf)){
+    plotitle <- paste0("Cumulative direction of ant trajecories with time (in/out ratio of ", counts, "/", length(innie) - counts, ")")
+  }else{plotitle <- titles.cmf}
+  
+  graphcol <- floor( (colSums((dat.cmf$x[,mintimef.cmf:maxtimef.cmf]) != 0)/antmax.cmf*binno.cmf)+1 ) #figuring out graph point coloration
   
   plot(x = mintimef.cmf:maxtimef.cmf, y = cmfvalues, 
        #ylim = if(keepscale.cmf == TRUE){c(min(keepsums, na.rm = TRUE),max(keepsums, na.rm = TRUE))}else{NULL},
-       main = paste0("Cumulative direction of ant trajecories with time (in/out ratio of ", counts, "/", length(innie) - counts, ")"),
-       xlab = "Frame Number", ylab = "Balance of ants in and out", 
-       col = graphcol)
+       main = plotitle, xlab = "Frame Number", ylab = "Balance of ants in and out", 
+       col = graphcol, ...)
   
   
   #Adding graphical aspects to plot
