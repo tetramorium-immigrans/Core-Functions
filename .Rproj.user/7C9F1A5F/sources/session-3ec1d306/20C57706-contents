@@ -41,7 +41,9 @@ source("Subfunctions/rm0.R")                #Removes trajectories with a median 
 source("antleng.R")                         #Graphs the length/duration of trajectories over time
 source("antnetx.R")                         #Graphs the x-component of velocity over time
 source("antno.R")                           #Graphs number of ants over time
+source("antphase.R")                        #Graphs rate of change of number of ants
 source("antspeed.R")                        #Graphs the speed of ants over time
+source("anttort.R")                         #Graphs tortuosity of trajectories over time
 
 source("antmedians.R")
 source("anthead.R")

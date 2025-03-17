@@ -41,20 +41,43 @@ max(massspeed.c)
 # [1] 1.329981
 
 #Histogram graphing - Quality speed
-p2 <- hist(massspeed.a, plot = FALSE)
-p1 <- hist(massspeed.c, plot = FALSE)
 
-plot(p1, col=rgb(0,0,1, 1/4), xlim=c(0,1.4), main = "Distribution of mean trajectory speeds", xlab = "Speed (cm/s)")
-plot(p2, col=rgb(1,0,0, 1/4), xlim=c(0,1.4), add=T)
-legend("topright", inset = 0.25, legend = c("A videos", "C videos", "Overlap"), fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
+p1 <- hist(massspeed.a, plot = FALSE)
+p2 <- hist(massspeed.c, plot = FALSE)
+
+if(max(p1$counts) > max(p2$counts)){
+  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of mean trajectory speeds by quality", xlab = "Speed (cm/s)")
+  plot(p2, col=rgb(0,0,1, 1/4), add=T)
+}else{
+  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of mean trajectory speeds by quality", xlab = "Speed (cm/s)")
+  plot(p1, col=rgb(1,0,0, 1/4), add=T)
+}
+
+legend("topright", inset = 0.2, legend = 
+         c(paste("A Quality, n = ", length(massspeed.a)),
+           paste("C Quality, n =", length(massspeed.c)),
+           "Overlap"),
+       fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
+
 
 #Histogram graphing - Quality variance
-p2 <- hist(massspeedvar.a, plot = FALSE, breaks = seq(from = 0, to = 2.5, by = 0.1), xlim = c(0, 1.4))
-p1 <- hist(massspeedvar.c, plot = FALSE)
 
-plot(p1, col=rgb(0,0,1, 1/4), xlim=c(0,1.4), main = "Distribution of variance of trajectory speeds", xlab = "Variance of speed (cm/s)^2")
-plot(p2, col=rgb(1,0,0, 1/4), xlim=c(0,1.4), add=T)
-legend("topright", inset = 0.25, legend = c("A videos", "C videos", "Overlap"), fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
+p1 <- hist(massspeedvar.a, plot = FALSE, breaks = seq(from = 0, to = 2.5, by = 0.1))
+p2 <- hist(massspeedvar.c, plot = FALSE)
+
+if(max(p1$counts) > max(p2$counts)){
+  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory speeds by quality", xlab = "Speed (cm/s)")
+  plot(p2, col=rgb(0,0,1, 1/4), add=T)
+}else{
+  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory speeds by quality", xlab = "Speed (cm/s)")
+  plot(p1, col=rgb(1,0,0, 1/4), add=T)
+}
+
+legend("topright", inset = 0.3, legend = 
+         c(paste("A Quality, n = ", length(massspeed.a)),
+           paste("C Quality, n =", length(massspeed.c)),
+           "Overlap"),
+       fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
 
 
 

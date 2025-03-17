@@ -1,27 +1,27 @@
 {
-    "id": "E5A7C106",
-    "path": "D:/R/Core Functions/phases.R",
-    "project_path": "phases.R",
+    "id": "54C18CAF",
+    "path": "D:/R/Core Functions/Import.R",
+    "project_path": "Import.R",
     "type": "r_source",
-    "hash": "3837128580",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
-    "created": 1734024284262.0,
+    "dirty": true,
+    "created": 1742229738223.0,
     "source_on_save": false,
-    "relative_order": 5,
+    "relative_order": 8,
     "properties": {
         "tempName": "Untitled2",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "17,2",
-        "scrollLine": "0"
+        "cursorPosition": "63,3",
+        "scrollLine": "39"
     },
     "folds": "",
-    "lastKnownWriteTime": 1735930239,
+    "lastKnownWriteTime": 1742230283,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1735930239788,
+    "last_content_update": 1742234095692,
     "read_only": false,
     "read_only_alternatives": []
 }
