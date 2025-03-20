@@ -101,7 +101,7 @@ antphase.f <- function(dat.antphase, graph.antphase, datreturn.antphase,
   }else if(peaks.antphase == "minima"){
     slopefreq <- diff(localMinima(slope))
   }else{
-    print("Invalid peak value")
+    print("Invalid peak parameter")
     break
   }
   

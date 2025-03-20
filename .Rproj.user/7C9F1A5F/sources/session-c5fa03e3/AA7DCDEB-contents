@@ -1,5 +1,6 @@
 #Anttort
-#Calculates trajectory tortuosity
+#Calculates trajectory tortuosity (inverse)
+#Returns the inverse tortuosity of each trajectory
 
 #dat is data, a list of multiple sparse matrices
 #graph is whether to output a graph
@@ -10,7 +11,7 @@
 #(1) = inbound only
 #(2) = outbound only
 #--bytime is how to analyze the data:
-#TRUE = calculates the tortuosity up to that point for each trajectory active in a frame
+#TRUE = calculates the inverse tortuosity up to that point for each trajectory active in a frame
 #FALSE = calculates the total tortuosity of each trajectory and then uses that value to calculate the frame speed (default)
 #--fn is which statistic to return:
 #vari = variance 
@@ -69,7 +70,7 @@ anttort.f <- function(dat.anttort, graph.anttort, datreturn.anttort,
   #filter based on x/y and direction
   
   filterpath <- dat.anttort$pathlength
-  filterdist <- dat.anttort$distance_to_start
+  filterdist <- dat.anttort$dts
   
   if(direction.anttort == 1){                                                      
     innie <- which((apply(dat.anttort$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0) == TRUE) #Find which trajectories are inbound
@@ -96,31 +97,37 @@ anttort.f <- function(dat.anttort, graph.anttort, datreturn.anttort,
   
   if(bytime.anttort == FALSE){
     
-    filterdat <- sapply(1:dim(filterpath)[1], function(z){
+    tortuosity <- pbsapply(1:dim(filterpath)[1], function(z){
       tortmax <- max(which(filterpath[z,] != 0))
-      filterpath[z, tortmax] / filterdist[z, tortmax]
+      #filterpath[z, tortmax] / filterdist[z, tortmax]
+      filterdist[z, tortmax] / filterpath[z, tortmax]
     })
+    
+    #Return data if called for
+    if(graph.anttort == FALSE & datreturn.anttort == TRUE){
+      return(unlist(tortuosity))
+    }
     
     
     if(fn.anttort == "vari"){
-        keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-        var(filterdat[activetrajs[[z]]])
+        keepdat <- pbsapply(1:dim(filterpath)[2], function(z){
+          var(tortuosity[activetrajs[[z]]])
       })
       
       plotdat <- keepdat[mintimef.anttort:maxtimef.anttort]
       ylab.anttort <- 'Variance of tortuosity'
       
     }else if(fn.anttort == "amean"){
-        keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-        mean(filterdat[activetrajs[[z]]])
+        keepdat <- pbsapply(1:dim(filterpath)[2], function(z){
+        mean(tortuosity[activetrajs[[z]]])
       })
       
       plotdat <- keepdat[mintimef.anttort:maxtimef.anttort]
       ylab.anttort <- 'Mean of tortuosity'
       
     }else if(fn.anttort == "med"){
-        keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-        median(filterdat[activetrajs[[z]]])
+        keepdat <- pbsapply(1:dim(filterpath)[2], function(z){
+        median(tortuosity[activetrajs[[z]]])
       })
       
       plotdat <- keepdat[mintimef.anttort:maxtimef.anttort]
@@ -160,18 +167,6 @@ anttort.f <- function(dat.anttort, graph.anttort, datreturn.anttort,
     }
   }
   
-  #Output graph and data
-  
-  if(graph.anttort == FALSE & datreturn.anttort == TRUE){
-    return(trajdat)
-    
-    # anttortreturn <- list(plotdat, unlist(lapply(activetrajs, length)))
-    # names(anttortreturn) <- c("plotdat", "activetrajs")
-    # return(anttortreturn)
-    
-    #return(unlist(lapply(activetrajs, length)))
-    
-  }
   
   #If not provided, assembles the main title of the plot based on input arguments
   if(missing(titles.anttort)){
@@ -179,7 +174,7 @@ anttort.f <- function(dat.anttort, graph.anttort, datreturn.anttort,
     }else if(fn.anttort == "amean"){'Mean '
     }else if(fn.anttort == "med"){'Median '},
     
-    ' tortuosity of',
+    'tortuosity of',
     
     if(direction.anttort==1){
       ' inbound'
@@ -199,7 +194,7 @@ anttort.f <- function(dat.anttort, graph.anttort, datreturn.anttort,
   }else{plotitle <- titles.anttort}
   
   antplot(mintimef.antplot = mintimef.anttort, maxtimef.antplot = maxtimef.anttort, plotdat.antplot = plotdat, keepdat.antplot = keepdat,
-          #ylim.antplot = if(keepscale.anttort == TRUE){c(min(keepdat, na.rm = TRUE),max(keepdat, na.rm = TRUE))}else{NULL},
+          ylim.antplot = if(keepscale.anttort == TRUE){c(min(keepdat, na.rm = TRUE),max(keepdat, na.rm = TRUE))}else{NULL},
           main.antplot = plotitle, ylab.antplot = ylab.anttort,
           antmax.antplot = antmax.anttort, col.antplot = graphcol,
           frate.antplot = frate.anttort, lspacef.antplot = lspacef.anttort, winspacef.antplot = winspacef.anttort, winsizef.antplot = winsizef.anttort,

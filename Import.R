@@ -146,7 +146,7 @@ Process.single <- function(trajdatinput, rm0.p = TRUE,
     pathlength[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$pathlength*conv.p
     
     if(mass.p == FALSE){print('Interpolating pathlength values')}
-    pathlength <- pathlength[!rmlist == 0,]
+    pathlength <- pathlength[which(!rmlist == 0),]
     trajreturn <- c(trajreturn, pathlength = interna(pathlength))
   }
   
@@ -156,8 +156,8 @@ Process.single <- function(trajdatinput, rm0.p = TRUE,
     distance[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$distance_to_start*conv.p
     
     if(mass.p == FALSE){print('Interpolating distance to start values')}
-    distance <- distance[!rmlist == 0,]
-    trajreturn <- c(trajreturn, distance = interna(distance))
+    distance <- distance[which(!rmlist == 0),]
+    trajreturn <- c(trajreturn, dts = interna(distance))
   }
   
   # if("msd" %in% colnames(trajdat) & extended.p == TRUE){

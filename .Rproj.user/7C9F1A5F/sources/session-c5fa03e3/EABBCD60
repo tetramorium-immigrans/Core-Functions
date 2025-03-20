@@ -1,27 +1,27 @@
 {
-    "id": "54C18CAF",
-    "path": "D:/R/Core Functions/Import.R",
-    "project_path": "Import.R",
+    "id": "EABBCD60",
+    "path": "D:/R/Core Functions/Thesis Scripts/02 Size.R",
+    "project_path": "Thesis Scripts/02 Size.R",
     "type": "r_source",
     "hash": "0",
     "contents": "",
-    "dirty": true,
-    "created": 1742229738223.0,
+    "dirty": false,
+    "created": 1742502826990.0,
     "source_on_save": false,
-    "relative_order": 8,
+    "relative_order": 7,
     "properties": {
         "tempName": "Untitled2",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "63,3",
-        "scrollLine": "39"
+        "cursorPosition": "205,33",
+        "scrollLine": "197"
     },
     "folds": "",
-    "lastKnownWriteTime": 1742230283,
+    "lastKnownWriteTime": 1742228974,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1742234095692,
+    "last_content_update": 1742228974,
     "read_only": false,
     "read_only_alternatives": []
 }

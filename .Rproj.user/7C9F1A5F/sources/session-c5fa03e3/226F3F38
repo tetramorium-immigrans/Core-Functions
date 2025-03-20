@@ -1,27 +1,27 @@
 {
-    "id": "61174467",
-    "path": "D:/R/Core Functions/Thesis Scripts/00 Getting data.R",
-    "project_path": "Thesis Scripts/00 Getting data.R",
+    "id": "226F3F38",
+    "path": "D:/R/Core Functions/Thesis Scripts/03 Distance.R",
+    "project_path": "Thesis Scripts/03 Distance.R",
     "type": "r_source",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1742222835934.0,
+    "created": 1742502832399.0,
     "source_on_save": false,
-    "relative_order": 2,
+    "relative_order": 8,
     "properties": {
         "tempName": "Untitled3",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "6,0",
-        "scrollLine": "0"
+        "cursorPosition": "206,0",
+        "scrollLine": "197"
     },
     "folds": "",
-    "lastKnownWriteTime": 1742229983,
+    "lastKnownWriteTime": 1742228975,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1742229983828,
+    "last_content_update": 1742228975,
     "read_only": false,
     "read_only_alternatives": []
 }
