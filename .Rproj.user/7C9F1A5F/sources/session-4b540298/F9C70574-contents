@@ -1,13 +1,10 @@
 ##THESIS SCRIPTS - QUALITY COMPARISONS##
 
 
-##SPEED##
+##(a) MEAN OF SPEED##
 
 massspeed.a <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE)))
-massspeedvar.a <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE, fn = "vari")))
-
 massspeed.c <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE)))
-massspeedvar.c <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE, fn = "vari")))
 
 mean(massspeed.a)
 # [1] 0.5605528
@@ -23,26 +20,10 @@ var(massspeed.c)
 t.test(massspeed.c)
 #   0.537250 0.541055
 
-mean(massspeedvar.a)
-# [1] 0.2021376
-var(massspeedvar.a)
-#[1] 0.02188973
-t.test(massspeedvar.a)
-#   0.2002212 0.2040540
+cohensD(massspeed.a, massspeed.c)
+# [1] 0.1112991
 
-mean(massspeedvar.c)
-# [1] 0.1731485
-var(massspeedvar.c)
-#[1] 0.01943469
-t.test(massspeedvar.c)
-#   0.1717492 0.1745478
-
-max(massspeed.a)
-# [1] 1.381232
-max(massspeed.c)
-# [1] 1.329981
-
-#Histogram - Mean
+#Histogram
 
 p1 <- hist(massspeed.a, plot = FALSE)
 p2 <- hist(massspeed.c, plot = FALSE)
@@ -61,7 +42,35 @@ legend("topright", inset = 0.15, legend =
            "Overlap"),
        fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
 
-#Histogram - Variance
+
+##(b) VARIANCE OF SPEED##
+
+massspeedvar.a <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE, fn = "vari")))
+massspeedvar.c <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE, fn = "vari")))
+
+mean(massspeedvar.a)
+# [1] 0.2021376
+var(massspeedvar.a)
+#[1] 0.02188973
+t.test(massspeedvar.a)
+#   0.2002212 0.2040540
+
+mean(massspeedvar.c)
+# [1] 0.1731485
+var(massspeedvar.c)
+#[1] 0.01943469
+t.test(massspeedvar.c)
+#   0.1717492 0.1745478
+
+cohensD(massspeedvar.a, massspeedvar.c)
+# [1] 0.2031847
+
+cliff.delta(massspeedvar.a, massspeedvar.c)
+# [1] 0.2031847
+2*qnorm(-1/(cliff.delta(massspeedvar.a, massspeedvar.c)$estimate - 2))
+# [1] 0.1988256
+
+#Histogram
 
 p1 <- hist(massspeedvar.a, plot = FALSE, breaks = seq(from = 0, to = 2.5, by = 0.1))
 p2 <- hist(massspeedvar.c, plot = FALSE)
@@ -81,13 +90,10 @@ legend("topright", inset = 0.3, legend =
        fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
 
 
-##X-VELOCITY##
+##(c) MEAN OF X-VELOCITY##
 
 massx.a <- unname(unlist(Mass.function(antvel, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE)))
-massxvar.a <- unname(unlist(Mass.function(antvel, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE, fn = "vari")))
-
 massx.c <- unname(unlist(Mass.function(antvel, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE)))
-massxvar.c <- unname(unlist(Mass.function(antvel, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE, fn = "vari")))
 
 mean(massx.a)
 # [1] -0.001554159
@@ -103,6 +109,33 @@ var(massx.c)
 t.test(massx.c)
 #   -0.002605537  0.001109607
 
+cohensD(massx.a, massx.c)
+# [1] 0.00452439
+
+#Histogram
+
+p1 <- hist(massx.a, plot = FALSE)
+p2 <- hist(massx.c, plot = FALSE, breaks = seq(from = -1.5, to = 1.5, by = 0.1))
+
+if(max(p1$counts) > max(p2$counts)){
+  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of mean trajectory x-velocity by quality", xlab = "X-velocity (cm/s)")
+  plot(p2, col=rgb(0,0,1, 1/4), add=T)
+}else{
+  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of mean trajectory x-velocity by quality", xlab = "X-velocity (cm/s)")
+  plot(p1, col=rgb(1,0,0, 1/4), add=T)
+}
+
+legend("topright", inset = 0.15, legend = 
+         c(paste("A Quality, n =", length(massx.a), "trajectories"),
+           paste("C Quality, n =", length(massx.c), "trajectories"),
+           "Overlap"),
+       fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
+
+##(d) VARIANCE OF X-VELOCITY##
+
+massxvar.a <- unname(unlist(Mass.function(antvel, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE, fn = "vari")))
+massxvar.c <- unname(unlist(Mass.function(antvel, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE, fn = "vari")))
+
 mean(massxvar.a)
 # [1] 0.3106547
 var(massxvar.a)
@@ -117,36 +150,15 @@ var(massxvar.c)
 t.test(massxvar.c)
 #   0.2598782 0.2635328
 
-max(massx.a)
-# [1] 0.7805237
-min(massx.a)
-# [1] -0.9661305
-max(massx.c)
-# [1] 1.312993
-min(massx.c)
-# [1] -1.070049
+cohensD(massxvar.a, massxvar.c)
+# [1] 0.2512731
 
-#Histogram - Mean
+cliff.delta(massxvar.a, massxvar.c)
+# [1] 0.1353804
+2*qnorm(-1/(cliff.delta(massxvar.a, massxvar.c)$estimate - 2))
+# [1] 0.1822452
 
-p1 <- hist(massx.a, plot = FALSE)
-p2 <- hist(massx.c, plot = FALSE, breaks = seq(from = -1.5, to = 1.5, by = 0.1))
-
-if(max(p1$counts) > max(p2$counts)){
-  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of mean trajectory x-velocity by quality", xlab = "Speed (cm/s)")
-  plot(p2, col=rgb(0,0,1, 1/4), add=T)
-}else{
-  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of mean trajectory x-velocity by quality", xlab = "Speed (cm/s)")
-  plot(p1, col=rgb(1,0,0, 1/4), add=T)
-}
-
-legend("topright", inset = 0.15, legend = 
-         c(paste("A Quality, n =", length(massx.a), "trajectories"),
-           paste("C Quality, n =", length(massx.c), "trajectories"),
-           "Overlap"),
-       fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
-
-
-#Histogram - Variance
+#Histogram
 
 p1 <- hist(massxvar.a, plot = FALSE)
 p2 <- hist(massxvar.c, plot = FALSE)
@@ -166,7 +178,7 @@ legend("topright", inset = 0.3, legend =
        fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
 
 
-##INVERSE TORTUOSITY##
+##(e) INVERSE TORTUOSITY##
 
 masst.a <- unname(unlist(Mass.function(anttort, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE)))
 masst.c <- unname(unlist(Mass.function(anttort, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE)))
@@ -174,23 +186,26 @@ masst.c <- unname(unlist(Mass.function(anttort, dat.mf = massdat.c, graph = FALS
 mean(masst.a)
 # [1] 0.2191203
 var(masst.a)
-#[1] 0.03372442
+# [1] 0.03372442
 t.test(masst.a)
 #   0.2167416 0.2214989
 
 mean(masst.c)
 # [1] 0.2529161
 var(masst.c)
-#[1] 0.04267303
+# [1] 0.04267303
 t.test(masst.c)
 #   0.2508426 0.2549896
 
-max(masst.a)
-# [1] 0.9632479
-max(masst.c)
-# [1] 0.9565674
+cohensD(masst.a, masst.c)
+# [1] 0.170444
 
-#Histogram - Mean
+cliff.delta(masst.a, masst.c)
+# [1] -0.08438766
+2*qnorm(-1/(cliff.delta(masst.a, masst.c)$estimate - 2))
+# [1] -0.1015259
+
+#Histogram
 
 p1 <- hist(masst.a, plot = FALSE)
 p2 <- hist(masst.c, plot = FALSE)
@@ -210,17 +225,10 @@ legend("topright", inset = 0.2, legend =
        fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
 
 
-#Histogram - Variance
-#None, as inverse tortuosity is calculated only per trajectory
-
-
-##PERIODICITY##
+##(f) PERIODICITY##
 
 massp.a <- unname(unlist(Mass.function(antphase, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE)))
-#masspvar.a <- unname(unlist(Mass.function(antphase, dat.mf = massdat.a, graph = FALSE, datreturn = TRUE, fn = "vari")))
-
 massp.c <- unname(unlist(Mass.function(antphase, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE)))
-#masspvar.c <- unname(unlist(Mass.function(antphase, dat.mf = massdat.c, graph = FALSE, datreturn = TRUE, fn = "vari")))
 
 mean(massp.a)
 # [1] 576.5529
@@ -236,24 +244,8 @@ var(massp.c)
 t.test(massp.c)
 #   573.3363 592.6726
 
-# mean(masspvar.a)
-# # [1] 42678.68
-# var(masspvar.a)
-# #[1] 78948526
-# t.test(masspvar.a)
-# #   37758.17 47599.19
-# 
-# mean(masspvar.c)
-# # [1] 35861.43
-# var(masspvar.c)
-# #[1] 39312761
-# t.test(masspvar.c)
-# #   33273.31 38449.55
-
-max(massp.a)
-# [1] 1511
-max(massp.c)
-# [1] 1408
+cohensD(massp.a, massp.c)
+# [1] 0.03245761
 
 #Histogram - Mean
 
@@ -273,6 +265,18 @@ legend("topright", inset = 0.2, legend =
            paste("C Quality, n =", length(massp.c), "peak differences"),
            "Overlap"),
        fill = c(rgb(1,0,0,1/4), rgb(0,0,1,1/4), rgb(1,0,1, 1/2)))
+
+
+
+##CREATING POOLED SETS OF DATA##
+
+massdat.0 <- c(massdat.a, massdat.c)
+massspeed.0 <- c(massspeed.a, massspeed.c)
+massspeedvar.0 <- c(massspeedvar.a, massspeedvar.c)
+massx.0 <- c(massx.a, massx.c)
+massxvar.0 <- c(massxvar.a, massxvar.c)
+masst.0 <- c(masst.a, masst.c)
+massp.0 <- c(massp.a, massp.c)
 
 
 #Histogram - Variance

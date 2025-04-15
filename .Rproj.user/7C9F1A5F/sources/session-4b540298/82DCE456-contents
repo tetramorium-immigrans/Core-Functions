@@ -149,7 +149,7 @@ antphase.f <- function(dat.antphase, graph.antphase, datreturn.antphase,
 }
 
 
-#Necessary sub-function for antphase to run
+#Necessary sub-functions for antphase to run
 #Got from https://stackoverflow.com/a/6836924
 
 localMaxima <- function(x) {

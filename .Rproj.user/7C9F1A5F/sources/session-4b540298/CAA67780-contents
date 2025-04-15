@@ -1,0 +1,45 @@
+##Andheaddist
+#Distribution of variance in headings; produces a histogram
+
+#dat is data; by default it is indexed as (time in frames) x (trajectory #) x (x vec/y vec/heading/magnitude of motion)
+#outbound is how the analysis is restricted; 0 = all trajectories, 1 = outbound only, 2 = inbound only
+#mintime and maxtime restrict the time
+
+Antheaddist <- function(dat = trajs, outbound = 0, 
+                        mintime, maxtime, frate = 5,
+                        keepscale = FALSE, titles, ...){
+  Antheaddist.f(dat, outbound, mintime, maxtime, frate, keepscale, titles, ...)
+}
+
+Antheaddist.f <- function(trajs.antheaddist, outbound.antheaddist,
+                          mintime.antheaddist, maxtime.antheaddist, frate.antheaddist,
+                          keepscale.antheaddist, titles.antheaddist, ...){
+  
+  #mintime/maxtime: finding and converting
+  minmaxf.antheaddist <- Minmax(trajs.antheaddist, mintime = mintime.antheaddist, maxtime = maxtime.antheaddist, frate = frate.antheaddist)
+  mintimef.antheaddist <- minmaxf.antheaddist[1]
+  maxtimef.antheaddist <- minmaxf.antheaddist[2]
+  
+  #Filter for outbound
+  trajs.antheaddist <- Outbound(trajs.antheaddist, outbound.antheaddist)
+  
+  #get variance of heading of all trajectories during the window (note, this is a simple version; a more complex version to come to check whether the track is active during window, not just headings during window)
+  vardist <- colVars(trajs.antheaddist[mintimef.antheaddist:maxtimef.antheaddist,,3], na.rm = TRUE)
+  
+  #If not provided, assembles the main title of the plot based on input arguments
+  if(missing(titles.antheaddist)){
+    plotitle <- paste0("Distribution of variance in",
+       if(outbound.antheaddist==1){
+         ' outbound'
+       }else if(outbound.antheaddist==2){
+         ' inbound'
+       }else{
+         ' inbound and outbound'
+       },
+       ' heading (', round(mintimef.antheaddist / (frate.antheaddist*60)), 'm to ', round(maxtimef.antheaddist/(frate.antheaddist*60)),'m)')
+  }else{plotitle <- titles.antheaddist}
+  
+  #Plotting function
+  hist(vardist,
+       main = plotitle, xlab = "Variance in heading")
+}

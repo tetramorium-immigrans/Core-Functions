@@ -159,12 +159,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
   #Output graph and data
   
   if(graph.antspeed == FALSE & datreturn.antspeed == TRUE){
-    
-    if(bytime.antspeed == TRUE){
-      return(keepspeed)
-    }else{
-      return(trajspeed)
-    }
+    return(trajspeed)
     
     # antspeedreturn <- list(plotspeeds, unlist(lapply(activetrajs, length)))
     # names(antspeedreturn) <- c("plotspeeds", "activetrajs")

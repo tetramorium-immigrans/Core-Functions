@@ -195,3 +195,16 @@ preds <- predict(lm9, newdata = data.frame(x=newx), interval = 'confidence')
 lines(newx, aicpred[ ,3], lty = 'dashed', col = 'blue')
 lines(newx, aicpred[ ,2], lty = 'dashed', col = 'blue')
 polygon(c(rev(newx), newx), c(rev(aicpred[ ,3]), aicpred[ ,2]), col = 'grey', border = NA)
+
+#-----------------
+  
+  s <- 2:76
+lm1 <- nls(timespeed ~ I(timenum^power), data = dat, start = list(power = 1))
+lines(s, predict(lm1, list(timenum = s)), col = "green")
+
+lm2 <- nls(meantest ~ I(s^power), start = list(power = 1))
+lines(s, predict(lm2, list(meantest = s)), col = "blue")
+
+meantesttruncate <- meantest[s]
+lm3 <- nls(meantesttruncate ~ I(s^power), start = list(power = 0.5))
+lines(s, predict(lm3, list(meantesttruncate = s)), col = "red")

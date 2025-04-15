@@ -15,6 +15,12 @@ library(Matrix)
 #library(lmomco) #harmonic mean
 library(AICcmodavg)
 
+#library(nortest) #normality test
+library(lsr) #Cohen's D
+#library(Hmisc) #Non-parametric Cohen's D
+#library(WRS2) #Non-parametric Cohen's D
+library(effsize) #Cliff's delta
+
 source("Timeseries.R")
 source("Mass Timeseries.R")
 

@@ -26,3 +26,13 @@ massdat.30 <- c(massdat.a150[grep("3030", names(massdat.a150))],
                 massdat.a300[grep("3030", names(massdat.a300))],
                 massdat.c150[grep("3030", names(massdat.c150))],
                 massdat.c300[grep("3030", names(massdat.c300))])
+
+
+
+##FUNCTIONS FROM INTERNET##
+#Wilcox's Q
+#https://jmasm.com/index.php/jmasm/article/view/987
+#Code edits: https://www.reddit.com/r/statistics/comments/nur2r1/q_strange_results_calculating_a_robust_cohens_d_q/
+
+#Alternative to Wilcox's Q
+#https://aakinshin.net/posts/nonparametric-effect-size/
