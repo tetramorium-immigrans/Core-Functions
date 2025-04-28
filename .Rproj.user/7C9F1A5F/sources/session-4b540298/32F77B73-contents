@@ -48,9 +48,6 @@ antphase.f <- function(dat.antphase, graph.antphase, datreturn.antphase,
                     binno.antphase, lspace.antphase, legloc.antphase, keepscale.antphase,
                     titles.antphase, ...){
   
-  #Interpolating missing values as smooth.spline will not work without them
-  dat.antphase$x <- interna(dat.antphase$x)
-  
   #Greatest number of trajectories in region during any frame (for coloring purposes)
   antmax.antphase <- max(colSums((dat.antphase$x) > 0))
   
@@ -63,13 +60,13 @@ antphase.f <- function(dat.antphase, graph.antphase, datreturn.antphase,
   graphcol <- floor( (colSums((dat.antphase$x[,mintimef.antphase:maxtimef.antphase]) != 0)/antmax.antphase*binno.antphase)+1 ) #figuring out graph point coloration
   
   if(outbound.antphase == 0){                                                      #keepsums calculated for potential use in keepscale based on overall data
-    innie <- which((apply(dat.antphase$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0) == TRUE) #Find which trajectories are inbound
+    innie <- which((apply(dat.propx$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0) == TRUE) #Find which trajectories are inbound
     keepdat <- colSums(dat.antphase$x[innie,] > 0)
     plotdat <- keepdat[mintimef.antphase:maxtimef.antphase]
     ylab.antphase <- "inbound ants in region"
     
   }else if(outbound.antphase == 1){
-    outie <- which((apply(dat.antphase$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) < 0) == TRUE) #Find which trajectories are outbound
+    outie <- which((apply(dat.propx$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) < 0) == TRUE) #Find which trajectories are outbound
     keepdat <- colSums(dat.antphase$x[outie,] > 0)
     plotdat <- keepdat[mintimef.antphase:maxtimef.antphase]
     ylab.antphase <- "outbound ants in region"
@@ -81,7 +78,6 @@ antphase.f <- function(dat.antphase, graph.antphase, datreturn.antphase,
   }
   
   if(prop.antphase == TRUE){
-    keepdat <- keepdat / antmax.antphase
     plotdat <- plotdat / antmax.antphase
   }
   
@@ -135,19 +131,19 @@ antphase.f <- function(dat.antphase, graph.antphase, datreturn.antphase,
   }else{plotitle <- titles.antphase}
   
   #Find y limits if not supplied
-  # if(missing(ylim.antphase)){
-  #   if(keepscale.antphase == TRUE){
-  #     ylim.antphase <- c(min(keepdat.antphase, na.rm = TRUE),max(keepdat.antphase, na.rm = TRUE))
-  #   }else{
-  #     ylim.antphase <- NULL
-  #   }
-  # }
+  if(missing(ylim.antphase)){
+    if(keepscale.antphase == TRUE){
+      ylim.antphase <- c(min(keepdat.antphase, na.rm = TRUE),max(keepdat.antphase, na.rm = TRUE))
+    }else{
+      ylim.antphase <- NULL
+    }
+  }
   
   antplot(mintimef.antplot = mintimef.antphase, maxtimef.antplot = maxtimef.antphase, plotdat.antplot = plotdat, keepdat.antplot = keepdat,
-          #ylim.antplot = ylim.antphase,
+          ylim.antplot = ylim.antphase,
           main.antplot = plotitle, ylab.antplot = ylab.antphase,
           antmax.antplot = antmax.antphase, col.antplot = graphcol,
-          frate.antplot = frate.antphase, lspacef.antplot = lspacef.antphase, winspacef.antplot = winspace.antphase, winsize.antplot = winsizef.antphase,
+          frate.antplot = frate.antphase, lspacef.antplot = lspacef.antphase, winspacef.antplot = winspacef.antphase, winsizef.antplot = winsizef.antphase,
           binno.antplot = binno.antphase, legloc.antplot = legloc.antphase, keepscale.antplot = keepscale.antphase)
   
 }

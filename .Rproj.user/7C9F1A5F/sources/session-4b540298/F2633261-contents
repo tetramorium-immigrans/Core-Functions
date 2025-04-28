@@ -176,7 +176,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
   
   #If not provided, assembles the main title of the plot based on input arguments
   if(missing(titles.antspeed)){
-    plotitle <- paste0(if(fn.antspeed == "vari"){'Variance of speed of'}else if(fn.antspeed == "amean"){'Mean speed of'}else{'Median speed of'},
+    plotitle <- paste0(if(fn.antspeed == "vari"){'Harmonic mean speed of'}else if(fn.antspeed == "amean"){'Arithmetic mean speed of'}else{'Median speed of'},
        if(direction.antspeed==1){
          ' inbound'
        }else if(direction.antspeed==2){

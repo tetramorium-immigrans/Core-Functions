@@ -54,7 +54,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
                     titles.antspeed, ...){
   
   #Greatest number of trajectories in region during any frame (for coloring purposes)
-  antmax.antspeed <- max(colSums((dat.antspeed$x) > 0, na.rm = TRUE))
+  antmax.antspeed <- max(colSums((dat.antspeed$x) > 0))
   
   #mintime/maxtime: finding and converting
   minmaxf.antspeed <- Minmax(dat.antspeed, mintime = mintime.antspeed, maxtime = maxtime.antspeed, lspace = lspace.antspeed, frate = frate.antspeed)
@@ -67,7 +67,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
   winsizef.antspeed <- round(winsize.antspeed * frate.antspeed / 2)                #Halved since the value will be used to extend to either side of a point
   
   #Getting graph colors (important: BEFORE filtering)
-  graphcol <- floor( (colSums((dat.antspeed$x[,mintimef.antspeed:maxtimef.antspeed]) != 0, na.rm = TRUE)/antmax.antspeed*binno.antspeed)+1 ) #figuring out graph point coloration
+  graphcol <- floor( (colSums((dat.antspeed$x[,mintimef.antspeed:maxtimef.antspeed]) != 0)/antmax.antspeed*binno.antspeed)+1 ) #figuring out graph point coloration
   
   #filter based on direction
   
@@ -90,11 +90,11 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
     
     if(fn.antspeed == "vari"){
       trajspeed <- apply(filterspeed, 1, function(z){
-        var(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
+        var(z[min(which(z != 0)):max(which(z != 0))])
       })
       
       keepspeed <- pbsapply(1:dim(filterspeed)[2], function(z){
-        mean(trajspeed[activetrajs[[z]]], na.rm = TRUE)
+        mean(trajspeed[activetrajs[[z]]])
       })
       
       plotspeeds <- keepspeed[mintimef.antspeed:maxtimef.antspeed]
@@ -102,11 +102,11 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
       
     }else if(fn.antspeed == "amean"){
       trajspeed <- apply(filterspeed, 1, function(z){
-        mean(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
+        mean(z[min(which(z != 0)):max(which(z != 0))])
       })
       
       keepspeed <- pbsapply(1:dim(filterspeed)[2], function(z){
-        mean(trajspeed[activetrajs[[z]]], na.rm = TRUE)
+        mean(trajspeed[activetrajs[[z]]])
       })
       
       plotspeeds <- keepspeed[mintimef.antspeed:maxtimef.antspeed]
@@ -114,11 +114,11 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
       
     }else if(fn.antspeed == "med"){
       trajspeed <- apply(filterspeed, 1, function(z){
-        median(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
+        median(z[min(which(z != 0)):max(which(z != 0))])
       })
       
       keepspeed <- pbsapply(1:dim(filterspeed)[2], function(z){
-        median(trajspeed[activetrajs[[z]]], na.rm = TRUE)
+        median(trajspeed[activetrajs[[z]]])
       })
       
       plotspeeds <- keepspeed[mintimef.antspeed:maxtimef.antspeed]
@@ -130,7 +130,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
     
     if(fn.antspeed == "vari"){
       keepspeed <- pbsapply(1:dim(filterspeed)[2], function(z){
-        var(filterspeed[activetrajs[[z]],z], na.rm = TRUE)
+        var(filterspeed[activetrajs[[z]],z])
       })
       
       plotspeeds <- keepspeed[mintimef.antspeed:maxtimef.antspeed]
@@ -138,7 +138,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
       
     }else if(fn.antspeed == "amean"){
       keepspeed <- pbsapply(1:dim(filterspeed)[2], function(z){
-        mean(filterspeed[activetrajs[[z]],z], na.rm = TRUE)
+        mean(filterspeed[activetrajs[[z]],z])
       })
       
       plotspeeds <- keepspeed[mintimef.antspeed:maxtimef.antspeed]
@@ -146,7 +146,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
       
     }else if(fn.antspeed == "med"){
       keepspeed <- pbsapply(1:dim(filterspeed)[2], function(z){
-        median(filterspeed[activetrajs[[z]],z], na.rm = TRUE)
+        median(filterspeed[activetrajs[[z]],z])
       })
       
       plotspeeds <- keepspeed[mintimef.antspeed:maxtimef.antspeed]
@@ -176,7 +176,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed,
   
   #If not provided, assembles the main title of the plot based on input arguments
   if(missing(titles.antspeed)){
-    plotitle <- paste0(if(fn.antspeed == "vari"){'Variance of speed of'}else if(fn.antspeed == "amean"){'Mean speed of'}else{'Median speed of'},
+    plotitle <- paste0(if(fn.antspeed == "vari"){'Harmonic mean speed of'}else if(fn.antspeed == "amean"){'Arithmetic mean speed of'}else{'Median speed of'},
        if(direction.antspeed==1){
          ' inbound'
        }else if(direction.antspeed==2){

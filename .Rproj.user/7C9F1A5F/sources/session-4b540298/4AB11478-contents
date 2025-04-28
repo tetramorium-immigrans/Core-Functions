@@ -5,7 +5,7 @@
 
 interna <- function(dat){
   
-  #print("Interpolating values")
+  print("Interpolating values")
   
   intout <- pbapply(dat, 1, function(z){
     tmin.interna <- min(which(z != 0))

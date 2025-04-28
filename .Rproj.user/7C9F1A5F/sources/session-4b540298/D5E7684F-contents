@@ -174,7 +174,7 @@ anttort.f <- function(dat.anttort, graph.anttort, datreturn.anttort,
     }else if(fn.anttort == "amean"){'Mean '
     }else if(fn.anttort == "med"){'Median '},
     
-    'inverse tortuosity of',
+    'tortuosity of',
     
     if(direction.anttort==1){
       ' inbound'

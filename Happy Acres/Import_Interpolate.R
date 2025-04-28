@@ -11,7 +11,7 @@
 
 #extended = whether to also process pathlength, distance_to_start, and mean squared distance (included in the .csv file I don't often use them)
 
-#conv = conversion factor from pixels to cm (1/14 cm/pixel, used for x/y/pathlength/distance conversion)
+#conv = conversion factor from pixels to cm (27/480 cm/pixel, used for x/y/pathlength/distance/msd conversion)
 #frate = conversion factor from pixels to seconds (5s, multiplied along with conv for speed/xvel/yvel)
 #default.path = runs from a hard-coded location for convenience, but can be told to look for a file elsewhere if necessary (NOT WORKING)
 #mass = flag for whether the function is being used by Import.mass (used mainly to avoid text spam when importing many files)
@@ -29,7 +29,7 @@
 Import.single <- function(path, 
                           process = TRUE, rm0 = TRUE, 
                           extended = FALSE,
-                          conv = 1/14, frate = 5, 
+                          conv = 0.05625, frate = 5, 
                           default.path = TRUE, mass = FALSE){
   
   #If/else for default.path; FALSE IS CURRENTLY NOT WORKING
@@ -52,21 +52,18 @@ Import.single <- function(path,
 
 Process.single <- function(trajdatinput, rm0.p = TRUE,
                            extended.p = FALSE,
-                           conv.p = 1/14, frate.p = 5,
+                           conv.p = 0.05625, frate.p = 5,
                            mass.p = FALSE){
   trajdat <- data.frame(trajdatinput)  #code won't work if it's not a data frame
-
-  #Steps:
-  #1) Set up sparse matrices
-  #2) Populate matrices
-  #3) ID frames with no data and tag with NAs
-  #4) Change all -1 headings to NAs and move to first quadrant
-  #5) Calculate xvel and yvel
-  #6) Remove stationary objects
-  #7) Implement extended variables
-  #8) Return data
   
-  ##1) Setting up sparse matrices for non-extended variables
+  #Shows progress bar timers if being individually processed but omits them during mass processing for clarity's sake
+  if(mass.p == TRUE){
+    pboptions(type = "none")
+  }else{
+    pboptions(type = "timer")
+  }
+
+  ##Setting up sparse matrices for non-extended variables
   
   sparsedims <- c(max(trajdat$X..Trajectory), max(trajdat$Time))
   
@@ -77,91 +74,106 @@ Process.single <- function(trajdatinput, rm0.p = TRUE,
   xvel <- Matrix(data = 0, nrow = sparsedims[1], ncol = sparsedims[2], sparse = TRUE)
   yvel <- Matrix(data = 0, nrow = sparsedims[1], ncol = sparsedims[2], sparse = TRUE)
   
-  ##2) Populating matrices
+  ##Populating matrices with data and finding the ranges in which data exists
   
   x[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$x * conv.p
   y[cbind(trajdat$X..Trajectory, trajdat$Time)] <- (max(trajdat$y) - trajdat$y) * conv.p   #AnTracks operates in the 4th quadrant so need to flip it to first by reversing based off of max(y)
   speed[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$speed * conv.p * frate.p
-  heading[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$heading
   
-  ##3) IDing frames with no data (no x-coordinate) and replacing them with NAs
+  trajdat$heading[trajdat$heading == 0] <- 1e-7                                 #Replacing true 0s with near-0 placeholders so not to be confused with missing data in the sparse matrix
+  heading[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$heading        #This is in 4th quadrant rather than 1st and in degrees rather than radians; will be converted below
   
-  for(i in 1:dim(x)[1]){
-    tmin <- min(which(x[i,] != 0))
-    tmax <- max(which(x[i,] != 0))
-
-    x[i,tmin:tmax] <- replace(x[i,tmin:tmax], which(x[i,tmin:tmax] == 0), NA)
-
-  }
-  
-  # x <- pbsapply(1:dim(x)[1], function(z){
-  #   tmin <- min(which(x[z,] != 0))
-  #   tmax <- max(which(x[z,] != 0))
-  # 
-  #   x[which(x[z,tmin:tmax] == 0)] <- NA
-  #   x[z,]
-  # 
-  # })
-
-  y[which(is.na(x))] <- NA
-  speed[which(is.na(x))] <- NA
-  heading[which(is.na(x))] <- NA
-  
-  ##4) Replace -1s in heading with NAs and moving to first quadrant
-  
-  heading[which(heading == -1)] <- NA  
-  heading <- -heading * pi / 180
-  
-  ##5) Calculate xvel and yvel
-  
-  xvel <- speed * cos(heading)                                       
-  yvel <- speed * sin(heading)
-  
-  ##6) Removing stationary objects (median speed of 0)
+  #rm0.p - removing the rows of objects that never move (median speed of 0)
   if(rm0.p == TRUE){
-    rmlist <- tapply(trajdat$speed, factor(trajdat$X..Trajectory), median, na.rm = TRUE)
+    rmlist <- tapply(trajdat$speed, factor(trajdat$X..Trajectory), median)
     x <- x[which(!rmlist == 0),]
     y <- y[which(!rmlist == 0),]
     speed <- speed[which(!rmlist == 0),]
     heading <- heading[which(!rmlist == 0),]
-    xvel <- xvel[which(!rmlist == 0),]
-    yvel <- yvel[which(!rmlist == 0),]
     }
   
-  ###7) Adding in extended values if flagged
+  # datmin = apply(x, 1, function(z){min(which(z > 0))})
+  # datmax = apply(x, 1, function(z){max(which(z > 0))})
+  # 
+  # trajreturn <- list(datrange = cbind(datmin, datmax))
+  
+  ##Interpolate simpler values
+  
+  if(mass.p == FALSE){print('Interpolating x values')}
+  trajreturn <- list(x = interna(x))
+  if(mass.p == FALSE){print('Interpolating y values')}
+  trajreturn <- c(trajreturn, y = interna(y))
+  
+  speed[which(heading == -1)] <- 1e-7                                           #Giving true 0s a value so that interna can interpolate the remainder properly
+  if(mass.p == FALSE){print('Interpolating speed values')}
+  trajreturn <- c(trajreturn, speed = interna(speed))
+  
+  ##Prepping heading
+  
+  trajreturn <- c(trajreturn, heading = heading)                                #This is here purely because I like the order of values to go x/y/speed/heading/xvel/yvel
+  
+  heading[which(heading == -1)] <- NA                                           #Replace -1s in heading with NAs
+  if(mass.p == FALSE){print('Interpolating heading values')}                    #Actually a lie, I'm not interpolating here but it makes the user readout more friendly
+  
+  intout <- pbapply(heading, 1, function(z){                                    #Replace missing frame 0s in heading with NAs
+    tmin <- min(which(z != 0))
+    tmax <- max(which(z != 0))
+    z[tmin:tmax] <- replace(z[tmin:tmax], which(z[tmin:tmax] == 0), NA)
+    z
+  })
+  heading <- Matrix(t(intout), sparse = TRUE)
+  
+  heading <- -heading * pi / 180                                                #Moving heading to 1st quadrant and radians
+  
+  ##Interpolating more complex values
+  
+  xvel <- trajreturn$speed * cos(heading)                                       #Counting on NAs in heading to return NAs in the xvel and yvel; multiplying by speed takes care of cos(0) = 1 in the sparse matrix
+  yvel <- trajreturn$speed * sin(heading)
+  if(mass.p == FALSE){print('Interpolating x-velocity values')}
+  trajreturn <- c(trajreturn, xvel = interna(xvel))                             #Fills in NAs in xvel
+  if(mass.p == FALSE){print('Interpolating y-velocity values')}
+  trajreturn <- c(trajreturn, yvel = interna(yvel))                             #Fills in NAs in yvel
+  
+  #heading[which(is.na(heading))] <- -acos(xtemp[which(is.na(heading))])         #Use xvel to back-calculate an interpolated heading (since can't linearly estimate polar coordinates)
+  heading[which(is.na(heading))] <- -acos(xvel[which(is.na(heading))]/trajreturn$speed[which(is.na(heading))])
+  trajreturn$heading <- heading                                                 #Overwrite the earlier placeholder with the final data
+  
+  ##Adding in extended values if flagged
 
   if("pathlength" %in% colnames(trajdat) & extended.p == TRUE){
     pathlength <- Matrix(data = 0, nrow = sparsedims[1], ncol = sparsedims[2], sparse = TRUE)
+    trajdat$pathlength[trajdat$pathlength == 0] <- 1e-7                                              #replacing 0 speed entries with 1e-7 to differentiate them from the 0s of the sparse matrix 
     pathlength[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$pathlength*conv.p
     
-    if(rm0.p == TRUE){
-      pathlength <- pathlength[which(!rmlist == 0),]
-    }
-    
-    pathlength[which(is.na(x))] <- NA
-    
+    if(mass.p == FALSE){print('Interpolating pathlength values')}
+    pathlength <- pathlength[which(!rmlist == 0),]
+    trajreturn <- c(trajreturn, pathlength = interna(pathlength))
   }
   
   if("distance_to_start" %in% colnames(trajdat) & extended.p == TRUE){
     distance <- Matrix(data = 0, nrow = sparsedims[1], ncol = sparsedims[2], sparse = TRUE)
+    trajdat$distance_to_start[trajdat$distance_to_start == 0] <- 1e-7                                              #replacing 0 speed entries with 1e-7 to differentiate them from the 0s of the sparse matrix 
     distance[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$distance_to_start*conv.p
     
-    if(rm0.p == TRUE){
-      distance <- distance[which(!rmlist == 0),]
-    }
-    
-    distance[which(is.na(x))] <- NA
-    
+    if(mass.p == FALSE){print('Interpolating distance to start values')}
+    distance <- distance[which(!rmlist == 0),]
+    trajreturn <- c(trajreturn, dts = interna(distance))
   }
   
-  ##8) Return data
+  # if("msd" %in% colnames(trajdat) & extended.p == TRUE){
+  #   msd <- Matrix(data = 0, nrow = sparsedims[1], ncol = sparsedims[2], sparse = TRUE)
+  #   trajdat$msd[trajdat$msd == 0] <- 1e-7                                              #replacing 0 speed entries with 1e-7 to differentiate them from the 0s of the sparse matrix 
+  #   msd[cbind(trajdat$X..Trajectory, trajdat$Time)] <- trajdat$msd*conv.p    ##DON'T FORGET TO CHECK THIS CONVERSION FACTOR
+  #   
+  #   if(interna.p == TRUE){
+  #     msd <- msd[!rmlist == 0,]
+  #     trajreturn <- c(trajreturn, msd = interna(msd))
+  #   }else{
+  #     trajreturn <- c(trajreturn, msd = msd)
+  #   }
+  # }
   
-  if(extended.p == TRUE){
-    trajreturn <- list(x = x, y = y, speed = speed, heading = heading, xvel = xvel, yvel = yvel, pathlength = pathlength, distance = distance) 
-  }else{
-    trajreturn <- list(x = x, y = y, speed = speed, heading = heading, xvel = xvel, yvel = yvel) 
-  }
-  
+  pboptions(type = "timer")
   return(trajreturn)
   
 }

@@ -5,16 +5,12 @@
 
 interna <- function(dat){
   
-  #print("Interpolating values")
-  
   intout <- pbapply(dat, 1, function(z){
     tmin.interna <- min(which(z != 0))
     tmax.interna <- max(which(z != 0))
 
-    z[tmin.interna:tmax.interna] <- approx(z[tmin.interna:tmax.interna], n = length(z[tmin.interna:tmax.interna]))$y
-    
-    # z[tmin.interna:tmax.interna] <- approx(replace(z[tmin.interna:tmax.interna], which(z[tmin.interna:tmax.interna] == 0), NA), 
-    #                                        n = length(z[tmin.interna:tmax.interna]))$y
+    z[tmin.interna:tmax.interna] <- approx(replace(z[tmin.interna:tmax.interna], which(z[tmin.interna:tmax.interna] == 0), NA), 
+                                           n = length(z[tmin.interna:tmax.interna]))$y
     z
     
   })
