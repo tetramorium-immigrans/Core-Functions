@@ -7,21 +7,21 @@ massspeed.150 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.150, gra
 massspeed.300 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.300, graph = FALSE, datreturn = TRUE, trajreturn = TRUE)))
 
 mean(massspeed.150)
-#[1] 0.5251604
+#[1] 0.5266617
 var(massspeed.150)
-#[1] 0.03647086
+#[1] 0.03637103
 t.test(massspeed.150)
-#  0.5229566 0.5273643
+#  0.5244609 0.5288625
 
 mean(massspeed.300)
-#[1] 0.6012006
+#[1] 0.602695
 var(massspeed.300)
-#[1] 0.04018909
+#[1] 0.04008703
 t.test(massspeed.300)
-#  0.5990103 0.6033910
+#  0.6005074 0.6048826
 
 cohensD(massspeed.150, massspeed.300)
-# [1] 0.3878817
+# [1] 0.3938553
 
 #Histogram
 
@@ -49,26 +49,26 @@ massspeedvar.150 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.150, 
 massspeedvar.300 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.300, graph = FALSE, datreturn = TRUE, trajreturn = TRUE, fn = "vari")))
 
 mean(massspeedvar.150)
-#[1] 0.1703201
+#[1] 0.1701647
 var(massspeedvar.150)
-#[1] 0.01899603
+#[1] 0.01905448
 t.test(massspeedvar.150)
-#  0.1687296 0.1719106
+#  0.1685717 0.1717576
 
 mean(massspeedvar.300)
-#[1] 0.2057526
+#[1] 0.2055472
 var(massspeedvar.300)
-#[1] 0.02270975
+#[1] 0.02277917
 t.test(massspeedvar.300)
-#  0.2041061 0.2073991
+#  0.2038982 0.2071962
 
 cohensD(massspeedvar.150, massspeedvar.300)
-# [1] 0.2447738
+# [1] 0.2440546
 
 cliff.delta(massspeedvar.150, massspeedvar.300)
-# [1] -0.1932429  
+# [1] -0.1929076 
 2*qnorm(-1/(cliff.delta(massspeedvar.150, massspeedvar.300)$estimate - 2))
-# [1] -0.2213055
+# [1] -0.2209539
 
 #Histogram
 
@@ -96,21 +96,21 @@ massx.150 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.150, graph = F
 massx.300 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.300, graph = FALSE, datreturn = TRUE, trajreturn = TRUE)))
 
 mean(massx.150)
-#[1] -0.003374316
+#[1] -0.003550209
 var(massx.150)
-#[1] 0.02898884
+#[1] 0.03223571
 t.test(massx.150)
-#   -0.005339141 -0.001409490
+#   -0.005622149 -0.001478270
 
 mean(massx.300)
-#[1] -0.002214559
+#[1] -0.002160029
 var(massx.300)
-#[1] 0.03776655
+#[1] 0.04186698
 t.test(massx.300)
-#   -4.337859e-03 -9.125763e-05
+#   -4.395627e-03  7.556948e-05
 
 cohensD(massx.150, massx.300)
-# [1] 0.00632535
+# [1] 0.00719669
 
 #Histogram
 
@@ -138,37 +138,42 @@ massxvar.150 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.150, graph 
 massxvar.300 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.300, graph = FALSE, datreturn = TRUE, trajreturn = TRUE, fn = "vari")))
 
 mean(massxvar.150)
-#[1] 0.2616854
+#[1] 0.2836922
 var(massxvar.150)
-#[1] 0.04180344
+#[1] 0.04436765
 t.test(massxvar.150)
-#   0.2593259 0.2640449
+#   0.2812615 0.2861230
 
 mean(massxvar.300)
-#[1] 0.3207045
+#[1] 0.3473056
 var(massxvar.300)
-#[1] 0.04348029
+#[1] 0.04581898
 t.test(massxvar.300)
-#   0.3184262 0.3229828
+#   0.3449668 0.3496443
+
+max(massx.150)
+#[1] 0.7680766
+max(massx.300)
+#[1] 1.312993
 
 cohensD(massxvar.150, massxvar.300)
-# [1] 0.2856548
+# [1] 0.2994343
 
 cliff.delta(massxvar.150, massxvar.300)
-# [1] -0.2045929  
+# [1] -0.2141364 
 2*qnorm(-1/(cliff.delta(massxvar.150, massxvar.300)$estimate - 2))
-# [1] -0.2331497
+# [1] -0.2430209
 
 #Histogram
 
-p1 <- hist(massxvar.150, plot = FALSE, breaks = seq(from = 0, to = 3, by = 0.1))
+p1 <- hist(massxvar.150, plot = FALSE)
 p2 <- hist(massxvar.300, plot = FALSE)
 
 if(max(p1$counts) > max(p2$counts)){
-  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory x-velocities by size", xlab = "(cm/s)^2", xlim = c(0,2))
+  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory x-velocities by size", xlab = "(cm/s)^2")
   plot(p2, col=rgb(0,0,1, 1/4), add=T)
 }else{
-  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory x-velocities by size", xlab = "(cm/s)^2", xlim = c(0,2))
+  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory x-velocities by size", xlab = "(cm/s)^2")
   plot(p1, col=rgb(1,0,0, 1/4), add=T)
 }
 

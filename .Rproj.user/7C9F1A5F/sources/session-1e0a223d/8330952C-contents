@@ -53,6 +53,8 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed, trajret
                     binno.antspeed, legloc.antspeed, keepscale.antspeed,
                     titles.antspeed, ...){
   
+  #dat.antspeed$x[which(is.na(dat.antspeed$x))] <- 1                                   #Replacing NA values with 1's just so they are counted in the total
+  
   #Greatest number of trajectories in region during any frame (for coloring purposes)
   antmax.antspeed <- max(colSums((dat.antspeed$x) > 0, na.rm = TRUE))
   
@@ -73,171 +75,100 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed, trajret
   
   if(direction.antspeed == 0){
     filterdat <- dat.antspeed$speed
-    filterx <- dat.antspeed$x       #The x coordinate values are carried through for use later in determining the start and stop time of trajectories
   }else if(direction.antspeed == 1){                                                      
     innie <- which((apply(dat.antspeed$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0) == TRUE) #Find which trajectories are inbound
     filterdat <- dat.antspeed$speed[innie,]
-    filterx <- dat.antspeed$x[innie,]
   }else if(direction.antspeed == 2){                                                      
     outie <- which((apply(dat.antspeed$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) < 0) == TRUE) #Find which trajectories are outbound
     filterdat <- dat.antspeed$speed[outie,]
-    filterx <- dat.antspeed$x[outie,]
   }
   
   #Main calculations
   
-  #Find active trajectories and their ranges
-  
-  activetrajs <- apply(filterx, 2, function(z){which(z != 0)})                
-  
-  # activerangs <- t(sapply(1:dim(filterdat)[1], function(z){
-  #   tmin <- min(which(filterx[z,] != 0))
-  #   tmax <- max(which(filterx[z,] != 0))
-  #   c(tmin, tmax)
-  # }))
-  
-  #Calculate the given function by time or by trajectory
+  activetrajs <- apply(filterdat, 2, function(z){which(z != 0)})              #Identifying active trajectories in each frame
+  # filterdat[filterdat == 1e-7] <- 0                                         #Converting the "true 0s" back to 0s 
   
   if(bytime.antspeed == FALSE){
     
-    if(fn.antspeed == "amean"){
-      trajdat <- pbsapply(1:dim(filterdat)[1], function(z){
-        tmin <- min(which(filterx[z,] != 0))
-        tmax <- max(which(filterx[z,] != 0))
-        
-        mean(filterdat[z,tmin:tmax], na.rm = TRUE)
+    if(fn.antspeed == "vari"){
+      trajdat <- pbapply(filterdat, 1, function(z){
+        var(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
       })
+      
+      if(trajreturn.antspeed == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
+      })
+      
+      plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
+      ylab.antspeed <- "Variance of speed (cm/s)^2"
+      
+    }else if(fn.antspeed == "amean"){
+      trajdat <- pbapply(filterdat, 1, function(z){
+        mean(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
+      })
+      
+      if(trajreturn.antspeed == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
+      })
+      
+      plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
+      ylab.antspeed <- "Arithmetic mean of speed (cm/s)"
+      
     }else if(fn.antspeed == "med"){
-      trajdat <- pbsapply(1:dim(filterdat)[1], function(z){
-        tmin <- min(which(filterx[z,] != 0))
-        tmax <- max(which(filterx[z,] != 0))
-        
-        median(filterdat[z,tmin:tmax], na.rm = TRUE)
+      trajdat <- pbapply(filterdat, 1, function(z){
+        median(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
       })
-    }else if(fn.antspeed == "vari"){
-      trajdat <- pbsapply(1:dim(filterdat)[1], function(z){
-        tmin <- min(which(filterx[z,] != 0))
-        tmax <- max(which(filterx[z,] != 0))
-        
-        var(filterdat[z,tmin:tmax], na.rm = TRUE)
+      
+      if(trajreturn.antspeed == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        median(trajdat[activetrajs[[z]]], na.rm = TRUE)
       })
+      
+      plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
+      ylab.antspeed <- "Median of speed (cm/s)"
+      
     }
-    
-    if(trajreturn.antspeed == TRUE){return(trajdat)}
-    
-    keepdat <- sapply(1:dim(filterdat)[2], function(z){
-      mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
-    })
-    
+
   }else if(bytime.antspeed == TRUE){
     
-    if(fn.antspeed == "amean"){
+    if(fn.antspeed == "vari"){
+      keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
+        var(filterdat[activetrajs[[z]],z], na.rm = TRUE)
+      })
+      
+      plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
+      ylab.antspeed <- "Variance of speed (cm/s)^2"
+      
+    }else if(fn.antspeed == "amean"){
       keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
         mean(filterdat[activetrajs[[z]],z], na.rm = TRUE)
       })
+      
+      plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
+      ylab.antspeed <- "Arithmetic mean of speed (cm/s)"
+      
     }else if(fn.antspeed == "med"){
       keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
         median(filterdat[activetrajs[[z]],z], na.rm = TRUE)
       })
-    }else if(fn.antspeed == "vari"){
-      keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-        var(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-      })
+      
+      plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
+      ylab.antspeed <- "Median of speed (cm/s)"
+      
     }
+    
   }
-  
-  plotdat <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  ylab.antspeed <- paste0(
-    if(fn.antspeed == "amean"){"Mean of mean "}else if(fn.antspeed == "med"){"Mean of median "}else if(fn.antspeed == "vari"){"Mean of variance of "},
-    if(bytime.antspeed == FALSE){"active trajectory speed (cm/s)"}else{"ant speed (cm/s)"},
-    if(fn.antspeed == "vari"){"^2"}
-  )
-  
-  # 
-  # activetrajs <- apply(filterx, 2, function(z){which(z != 0)})              #Identifying active trajectories in each frame
-  # # filterdat[filterdat == 1e-7] <- 0                                         #Converting the "true 0s" back to 0s 
-  # 
-  # if(bytime.antspeed == FALSE){
-  #   
-  #   if(fn.antspeed == "vari"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       var(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
-  #     })
-  #     
-  #     if(trajreturn.antspeed == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
-  #     })
-  #     
-  #     plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  #     ylab.antspeed <- "Variance of speed (cm/s)^2"
-  #     
-  #   }else if(fn.antspeed == "amean"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       mean(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
-  #     })
-  #     
-  #     if(trajreturn.antspeed == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
-  #     })
-  #     
-  #     plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  #     ylab.antspeed <- "Arithmetic mean of speed (cm/s)"
-  #     
-  #   }else if(fn.antspeed == "med"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       median(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
-  #     })
-  #     
-  #     if(trajreturn.antspeed == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       median(trajdat[activetrajs[[z]]], na.rm = TRUE)
-  #     })
-  #     
-  #     plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  #     ylab.antspeed <- "Median of speed (cm/s)"
-  #     
-  #   }
-  # 
-  # }else if(bytime.antspeed == TRUE){
-  #   
-  #   if(fn.antspeed == "vari"){
-  #     keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #       var(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-  #     })
-  #     
-  #     plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  #     ylab.antspeed <- "Variance of speed (cm/s)^2"
-  #     
-  #   }else if(fn.antspeed == "amean"){
-  #     keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #       mean(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-  #     })
-  #     
-  #     plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  #     ylab.antspeed <- "Arithmetic mean of speed (cm/s)"
-  #     
-  #   }else if(fn.antspeed == "med"){
-  #     keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #       median(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-  #     })
-  #     
-  #     plotspeed <- keepdat[mintimef.antspeed:maxtimef.antspeed]
-  #     ylab.antspeed <- "Median of speed (cm/s)"
-  #     
-  #   }
-  #   
-  # }
   
   #Output graph and data
   
@@ -286,7 +217,7 @@ antspeed.f <- function(dat.antspeed, graph.antspeed, datreturn.antspeed, trajret
     }
   }
   
-  antplot(mintimef.antplot = mintimef.antspeed, maxtimef.antplot = maxtimef.antspeed, plotdat.antplot = plotdat, keepdat.antplot = keepdat,
+  antplot(mintimef.antplot = mintimef.antspeed, maxtimef.antplot = maxtimef.antspeed, plotdat.antplot = plotspeed, keepdat.antplot = keepdat,
           ylim.antplot = ylim.antspeed,
           main.antplot = plotitle, ylab.antplot = ylab.antspeed,
           antmax.antplot = antmax.antspeed, col.antplot = graphcol,

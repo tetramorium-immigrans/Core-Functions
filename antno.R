@@ -34,6 +34,8 @@ antno.f <- function(dat.antno, graph.antno, datreturn.antno,
                     binno.antno, lspace.antno, legloc.antno, keepscale.antno,
                     titles.antno, ...){
   
+  dat.antno$x[which(is.na(dat.antno$x))] <- 1                                   #Replacing NA values with 1's just so they are counted in the total
+  
   #Greatest number of trajectories in region during any frame (for coloring purposes)
   antmax.antno <- max(colSums((dat.antno$x) > 0))
   
@@ -65,6 +67,7 @@ antno.f <- function(dat.antno, graph.antno, datreturn.antno,
   
   if(prop.antno == TRUE){
     plotno <- plotno / antmax.antno
+    keepno <- keepno / antmax.antno
   }
   
   ##Return data if not graphing

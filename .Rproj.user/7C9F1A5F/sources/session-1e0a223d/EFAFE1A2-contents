@@ -7,21 +7,21 @@ massspeed.20 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.20, graph
 massspeed.30 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.30, graph = FALSE, datreturn = TRUE, trajreturn = TRUE)))
 
 mean(massspeed.20)
-#[1] 0.5381235
+#[1] 0.539702
 var(massspeed.20)
-#[1] 0.0358936
+#[1] 0.03579415
 t.test(massspeed.20)
-#   0.5362904 0.5399566
+#   0.5378715 0.5415326
 
 mean(massspeed.30)
-#[1] 0.620952
+#[1] 0.6222835
 var(massspeed.30)
-#[1] 0.04342728
+#[1] 0.04334977
 t.test(massspeed.30)
-#   0.6180632 0.6238408
+#   0.6193973 0.6251698
 
 cohensD(massspeed.20, massspeed.30)
-# [1] 0.4228942
+# [1] 0.4221412
 
 #Histogram
 
@@ -49,26 +49,26 @@ massspeedvar.20 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.20, gr
 massspeedvar.30 <- unname(unlist(Mass.function(antspeed, dat.mf = massdat.30, graph = FALSE, datreturn = TRUE, trajreturn = TRUE, fn = "vari")))
 
 mean(massspeedvar.20)
-#[1] 0.190532
+#[1] 0.1903959
 var(massspeedvar.20)
-#[1] 0.02167792
+#[1] 0.02175725
 t.test(massspeedvar.20)
-#   0.1891074 0.1919565
+#   0.1889687 0.1918231
 
 mean(massspeedvar.30)
-#[1] 0.1858682
+#[1] 0.1855926
 var(massspeedvar.30)
-#[1] 0.02040973
+#[1] 0.02043942
 t.test(massspeedvar.30)
-#   0.1838878 0.1878486
+#   0.1836107 0.1875744
 
 cohensD(massspeedvar.20, massspeedvar.30)
-# [1] 0.03198381
+# [1] 0.03289213
 
 cliff.delta(massspeedvar.20, massspeedvar.30)
-# [1] 0.02775156  
+# [1] 0.02809465 
 2*qnorm(-1/(cliff.delta(massspeedvar.20, massspeedvar.30)$estimate - 2))
-# [1] 0.03527267
+# [1] 0.03571499
 
 #Histogram
 
@@ -76,10 +76,10 @@ p1 <- hist(massspeedvar.20, plot = FALSE, breaks = seq(from = 0, to = 2.5, by = 
 p2 <- hist(massspeedvar.30, plot = FALSE)
 
 if(max(p1$counts) > max(p2$counts)){
-  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory speeds by distance", xlab = "(cm/s)^2", xlim = c(0,1.5))
+  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory speeds by distance", xlab = "(cm/s)^2")
   plot(p2, col=rgb(0,0,1, 1/4), add=T)
 }else{
-  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory speeds by distance", xlab = "(cm/s)^2", xlim = c(0,1.5))
+  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory speeds by distance", xlab = "(cm/s)^2")
   plot(p1, col=rgb(1,0,0, 1/4), add=T)
 }
 
@@ -96,21 +96,21 @@ massx.20 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.20, graph = FAL
 massx.30 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.30, graph = FALSE, datreturn = TRUE, trajreturn = TRUE)))
 
 mean(massx.20)
-#[1] -0.003185701
+#[1] -0.003144028
 var(massx.20)
-#[1] 0.0267005
+#[1] 0.03044854
 t.test(massx.20)
-#   -0.004766704 -0.001604697
+#   -0.004832354 -0.001455702
 
 mean(massx.30)
-#[1] -0.001894642
+#[1] 0.0021462
 var(massx.30)
-#[1] 0.04781526
+#[1] 0.05140829
 t.test(massx.30)
-#   -0.004925870  0.001136586
+#   -0.0052892553  0.0009968548
 
 cohensD(massx.20, massx.30)
-# [1] 0.007041479
+# [1] 0.005165541
 
 #Histogram
 
@@ -138,37 +138,37 @@ massxvar.20 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.20, graph = 
 massxvar.30 <- unname(unlist(Mass.function(antvel, dat.mf = massdat.30, graph = FALSE, datreturn = TRUE, trajreturn = TRUE, fn = "vari")))
 
 mean(massxvar.20)
-#[1] 0.2745335
+#[1] 0.3005169
 var(massxvar.20)
-#[1] 0.03860314
+#[1] 0.04155812
 t.test(massxvar.20)
-#   0.2726325 0.2764345
+#   0.2985445 0.3024893
 
 mean(massxvar.30)
-#[1] 0.3303146
+#[1] 0.3515545
 var(massxvar.30)
-#[1] 0.05162975
+#[1] 0.05379825
 t.test(massxvar.30)
-#   0.3271648 0.3334644
+#   0.3483392 0.3547698
 
 cohensD(massxvar.20, massxvar.30)
-# [1] 0.2694063
+# [1] 0.23909
 
 cliff.delta(massxvar.20, massxvar.30)
-# [1] -0.1530988  
+# [1] -0.1340573 
 2*qnorm(-1/(cliff.delta(massxvar.20, massxvar.30)$estimate - 2))
-# [1] -0.1784735
+# [1] -0.1576245
 
 #Histogram
 
-p1 <- hist(massxvar.20, plot = FALSE, breaks = seq(from = 0, to = 3, by = 0.1))
-p2 <- hist(massxvar.30, plot = FALSE, breaks = seq(from = 0, to = 3, by = 0.1))
+p1 <- hist(massxvar.20, plot = FALSE)
+p2 <- hist(massxvar.30, plot = FALSE)
 
 if(max(p1$counts) > max(p2$counts)){
-  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory x-velocities by distance", xlab = "(cm/s)^2", xlim = c(0,2))
+  plot(p1, col=rgb(1,0,0, 1/4), main = "Distribution of variance of trajectory x-velocities by distance", xlab = "(cm/s)^2")
   plot(p2, col=rgb(0,0,1, 1/4), add=T)
 }else{
-  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory x-velocities by distance", xlab = "(cm/s)^2", xlim = c(0,2))
+  plot(p2, col=rgb(0,0,1, 1/4), main = "Distribution of variance of trajectory x-velocities by distance", xlab = "(cm/s)^2")
   plot(p1, col=rgb(1,0,0, 1/4), add=T)
 }
 

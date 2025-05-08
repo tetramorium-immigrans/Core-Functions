@@ -79,194 +79,133 @@ antvel.f <- function(dat.antvel, graph.antvel, datreturn.antvel, trajreturn.antv
     filterdat <- dat.antvel$yvel
   }
   
-  filterx <- dat.antvel$x     #The x coordinate values are carried through for use later in determining the start and stop time of trajectories
-  
   if(direction.antvel == 1){                                                      
     innie <- which((apply(dat.antvel$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) > 0) == TRUE) #Find which trajectories are inbound
     filterdat <- filterdat[innie,]
-    filterx <- dat.antvel$x[innie,]
   }else if(direction.antvel == 2){                                                      
     outie <- which((apply(dat.antvel$x, 1, function(z){z[max(which(z != 0))] - z[min(which(z != 0))]}) < 0) == TRUE) #Find which trajectories are direction
     filterdat <- filterdat[outie,]
-    filterx <- dat.antvel$x[outie,]
   }
   
-  ##Main calculations
+  #Main calculations
   
-  #Find active trajectories and their ranges
-  
-  activetrajs <- apply(filterx, 2, function(z){which(z != 0)})                
-  
-  # activerangs <- t(sapply(1:dim(filterdat)[1], function(z){
-  #   tmin <- min(which(filterx[z,] != 0))
-  #   tmax <- max(which(filterx[z,] != 0))
+  #Find active data ranges
+  # activerangs <- t(pbsapply(1:dim(filterdat)[1], function(z){
+  #   tmin <- min(which(filterdat[z,] != 0))
+  #   tmax <- max(which(filterdat[z,] != 0))
   #   c(tmin, tmax)
   # }))
-
-  #Calculate the given function by time or by trajectory
+  
+  
+  
+  activetrajs <- apply(filterdat, 2, function(z){which(z != 0)})                #Identifying active trajectories in each frame
+  #filterdat[filterdat == 1e-7] <- 0                                             #Converting the "true 0s" back to 0s
   
   if(bytime.antvel == FALSE){
     
-    if(fn.antvel == "amean"){
-      trajdat <- pbsapply(1:dim(filterdat)[1], function(z){
-        tmin <- min(which(filterx[z,] != 0))
-        tmax <- max(which(filterx[z,] != 0))
-        
-        mean(filterdat[z,tmin:tmax], na.rm = TRUE)
+    if(fn.antvel == "vari"){
+      trajdat <- pbapply(filterdat, 1, function(z){
+        var(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
       })
+      
+      if(trajreturn.antvel == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
+      })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Variance of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)^2")
+      
+    }else if(fn.antvel == "amean"){
+      trajdat <- pbapply(filterdat, 1, function(z){
+        mean(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
+      })
+      
+      if(trajreturn.antvel == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
+      })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Arithmetic mean of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
+      
     }else if(fn.antvel == "med"){
-      trajdat <- pbsapply(1:dim(filterdat)[1], function(z){
-        tmin <- min(which(filterx[z,] != 0))
-        tmax <- max(which(filterx[z,] != 0))
-        
-        median(filterdat[z,tmin:tmax], na.rm = TRUE)
+      trajdat <- pbapply(filterdat, 1, function(z){
+        median(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
       })
-    }else if(fn.antvel == "vari"){
-      trajdat <- pbsapply(1:dim(filterdat)[1], function(z){
-        tmin <- min(which(filterx[z,] != 0))
-        tmax <- max(which(filterx[z,] != 0))
-        
-        var(filterdat[z,tmin:tmax], na.rm = TRUE)
+      
+      if(trajreturn.antvel == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        median(trajdat[activetrajs[[z]]], na.rm = TRUE)
       })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Median of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
+      
+    }else if(fn.antvel == "add"){
+      trajdat <- pbapply(filterdat, 1, function(z){
+        sum(z[min(which(z != 0)):max(which(z != 0))])
+      })
+      
+      if(trajreturn.antvel == TRUE){
+        return(trajdat)
+      }
+      
+      keepdat <- sapply(1:dim(filterdat)[2], function(z){
+        sum(trajdat[activetrajs[[z]]])
+      })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Sum of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
     }
-    
-    if(trajreturn.antvel == TRUE){return(trajdat)}
-   
-    keepdat <- sapply(1:dim(filterdat)[2], function(z){
-      mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
-    })
     
   }else if(bytime.antvel == TRUE){
     
-    if(fn.antvel == "amean"){
+    if(fn.antvel == "vari"){
+      keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
+        var(filterdat[activetrajs[[z]],z], na.rm = TRUE)
+      })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Variance of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)^2")
+      
+    }else if(fn.antvel == "amean"){
       keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
         mean(filterdat[activetrajs[[z]],z], na.rm = TRUE)
       })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Arithmetic mean of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
+      
     }else if(fn.antvel == "med"){
       keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
         median(filterdat[activetrajs[[z]],z], na.rm = TRUE)
       })
-    }else if(fn.antvel == "vari"){
-      keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-        var(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-      })
+      
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Median of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
+      
+    }else if(fn.antvel == "add"){
+      keepdat <- colSums(filterdat)
+      
+      # keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
+      #   sum(trajdat[activetrajs[[z]]])
+      # })
+      # 
+      plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
+      ylab.antvel <- paste0("Sum of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
     }
+    
   }
-  
-  plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  ylab.antvel <- paste0(
-    if(fn.antvel == "amean"){"Mean of mean "}else if(fn.antvel == "med"){"Mean of median "}else if(fn.antvel == "vari"){"Mean of variance of "},
-    if(bytime.antvel == FALSE){"active trajectory "}else{"ant "},
-    if(xvel.antvel == TRUE){"x-velocity (cm/s)"}else{"y-velocity (cm/s)"},
-    if(fn.antvel == "vari"){"^2"}
-  )
-
-  # 
-  # if(bytime.antvel == FALSE){
-  #   
-  #   if(fn.antvel == "vari"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       var(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
-  #     })
-  #     
-  #     if(trajreturn.antvel == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Variance of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)^2")
-  #     
-  #   }else if(fn.antvel == "amean"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       mean(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
-  #     })
-  #     
-  #     if(trajreturn.antvel == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       mean(trajdat[activetrajs[[z]]], na.rm = TRUE)
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Arithmetic mean of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
-  #     
-  #   }else if(fn.antvel == "med"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       median(z[min(which(z != 0)):max(which(z != 0))], na.rm = TRUE)
-  #     })
-  #     
-  #     if(trajreturn.antvel == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       median(trajdat[activetrajs[[z]]], na.rm = TRUE)
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Median of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
-  #     
-  #   }else if(fn.antvel == "add"){
-  #     trajdat <- pbapply(filterdat, 1, function(z){
-  #       sum(z[min(which(z != 0)):max(which(z != 0))])
-  #     })
-  #     
-  #     if(trajreturn.antvel == TRUE){
-  #       return(trajdat)
-  #     }
-  #     
-  #     keepdat <- sapply(1:dim(filterdat)[2], function(z){
-  #       sum(trajdat[activetrajs[[z]]])
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Sum of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
-  #   }
-  #   
-  # }else if(bytime.antvel == TRUE){
-  #   
-  #   if(fn.antvel == "vari"){
-  #     keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #       var(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Variance of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)^2")
-  #     
-  #   }else if(fn.antvel == "amean"){
-  #     keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #       mean(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Arithmetic mean of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
-  #     
-  #   }else if(fn.antvel == "med"){
-  #     keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #       median(filterdat[activetrajs[[z]],z], na.rm = TRUE)
-  #     })
-  #     
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Median of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
-  #     
-  #   }else if(fn.antvel == "add"){
-  #     keepdat <- colSums(filterdat)
-  #     
-  #     # keepdat <- pbsapply(1:dim(filterdat)[2], function(z){
-  #     #   sum(trajdat[activetrajs[[z]]])
-  #     # })
-  #     # 
-  #     plotdat <- keepdat[mintimef.antvel:maxtimef.antvel]
-  #     ylab.antvel <- paste0("Sum of ", if(xvel.antvel == TRUE){"x-velocity"}else{"y-velocity"}," (cm/s)")
-  #   }
-  #   
-  # }
   
   #Output graph and data
   
@@ -283,7 +222,7 @@ antvel.f <- function(dat.antvel, graph.antvel, datreturn.antvel, trajreturn.antv
   
   #If not provided, assembles the main title of the plot based on input arguments
   if(missing(titles.antvel)){
-    plotitle <- paste0(if(fn.antvel == "vari"){'Variance of'
+    plotitle <- paste0(if(fn.antvel == "vari"){'Harmonic mean of'
       }else if(fn.antvel == "amean"){'Arithmetic mean of'
       }else if(fn.antvel == "med"){'Median of'
       }else if(fn.antvel == "add"){'Sum of'},
